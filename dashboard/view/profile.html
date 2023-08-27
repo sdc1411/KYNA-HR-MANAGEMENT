@@ -120,6 +120,9 @@
     md="4"
   >
     <v-card>
+      <v-card-title class="primary text-center" style="display:block;">
+        <span class="text-h6 white--text">{{loginUser.cv_name}}</span>
+      </v-card-title>
       <v-card-text class="text-center">
 
           <!-- <v-avatar
@@ -141,9 +144,6 @@
           </v-avatar> -->
 
           <v-list>
-              <p class="mb-1 black--text">
-                {{loginUser.cv_name}}
-              </p>
               <p class="font-weight-light mb-1 black--text">
                 Mã nhân viên: {{loginUser.Employee_code}}
               </p>
@@ -158,6 +158,9 @@
               </p>
               <p class="font-weight-light mb-1 black--text">
                 Nơi làm việc: {{loginUser.location}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Ngày trở thành Kynaer: {{formatDate(loginUser.onboard_date)}}
               </p>
 
               <v-btn

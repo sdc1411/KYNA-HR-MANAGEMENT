@@ -75,6 +75,12 @@
       receivedLeaves: function(state){
         return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email)
       },
+      receivedLeavesQty: function(state){
+        return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email).length
+      },
+      sentLeavesQty: function(state){
+        return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email).length
+      },
       workingCalendarFilter: function(state){
         return state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
       },
@@ -121,6 +127,7 @@
           const {success, message, loginUser} = await Utils.request("getDataLoginUser", params)
           const dataUsers = await Utils.request("getItems", {getItemDB: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
           const dataLeaveTypes = await Utils.request("getItems", {getItemDB: "leaveDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
+          const dataLeaveRequests = await Utils.request("getItems", {getItemDB: "leaveDatabase",sheetName: "leaveRequests", page: 1, pageSize: -1})
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})
@@ -134,6 +141,7 @@
           commit("updateState", {key: "app", value: appInfo})
           commit("updateState", {key: "users", value: dataUsers})
           commit("updateState", {key: "leaveTypes", value: dataLeaveTypes})
+          commit("updateState", {key: "leaveRequests", value: dataLeaveRequests})
           commit("stopLoading")
           commit("showSnackbar", {color: "success", message})
           
@@ -203,21 +211,6 @@
         commit("startLoading")
         try {
           const {success, message} = await Utils.request("createResignForms", params)
-          if (!success){
-            commit("showSnackbar", {color: "error", message})
-          }else{
-            commit("showSnackbar", {color: "success", message})
-            return true
-          }
-        }catch(err){
-          commit("showSnackbar", {color: "error", message: err.message})
-        }
-      },
-
-      async createUpdateProfileForm({commit}, params){
-        commit("startLoading")
-        try {
-          const {success, message} = await Utils.request("createUpdateProfileForm", params)
           if (!success){
             commit("showSnackbar", {color: "error", message})
           }else{

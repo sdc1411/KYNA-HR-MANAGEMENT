@@ -535,7 +535,7 @@
       showUpdateProfileForm(item){
         const loginUser = this.$store.state.loginUser
         this.updateProfileForm = Utils.copyObject(Forms.UpdateProfileForm, true)
-        this.updateProfileForm.fullName.items = loginUser.cv_name
+        this.updateProfileForm.employeeName.items = loginUser.cv_name
         this.updateProfileForm.employeeCode.items = loginUser.Employee_code
         this.updateProfileForm.position.items = loginUser.position
         this.$refs.updateProfileForm && this.$refs.updateProfileForm.resetValidation()
@@ -550,8 +550,10 @@
       async submitUpdateProfileForm(){
         if (!this.$refs.updateProfileForm.validate()) return
         const item = Utils.getFormValues(this.updateProfileForm)
+        item.createdAt = new Date()
+        item.idStatus = 'Waiting Approve'
         // console.log(item)
-        const success = await this.$store.dispatch("createUpdateProfileForm", {item})
+        const success = await this.$store.dispatch("createItem", { createItemDB: "employeeInformationDatabase", sheetName: "updateProfileRequests", item})
         if (success) this.dialogUpdateProfile.show = false
       },
     },

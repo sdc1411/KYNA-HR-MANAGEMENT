@@ -224,6 +224,13 @@
     data: function() {
       return {
         drawer: true,
+        // notifications: [
+        //   'Mike John Responded to your email',
+        //   'You have 5 new tasks',
+        //   'You\'re now friends with Andrew',
+        //   'Another Notification',
+        //   'Another one',
+        // ],
       }
     },
     computed: {
@@ -243,6 +250,8 @@
         isAdmin: "isAdmin",
         isHR: "isHR",
         isManager: "isManager",
+        receivedLeavesQty: "receivedLeavesQty",
+        sentLeavesQty: "sentLeavesQty",
       }),
    
     },

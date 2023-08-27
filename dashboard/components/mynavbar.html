@@ -79,12 +79,19 @@
                       <v-icon>{{ item.meta.icon }}</v-icon>
                     </v-list-item-icon>
                     <v-list-item-content>
+                      <v-badge
+                        color="primary"
+                        :content="sentLeavesQty"
+                        :value="sentLeavesQty"
+                        inline
+                        >
                         <v-list-item-title>
                             {{ item.meta.title }}
                         </v-list-item-title>
+                      </v-badge>
                     </v-list-item-content>
-                    
                 </v-list-item>
+
                 <v-list-item
                     v-for="item in pages"
                     :key="item.path"
@@ -96,8 +103,17 @@
                       <v-icon>{{ item.meta.icon }}</v-icon>
                     </v-list-item-icon>
                     <v-list-item-content>
-                      <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                         <v-badge
+                        color="secondary"
+                        :content="receivedLeavesQty"
+                        :value="receivedLeavesQty"
+                        inline
+                        >
+                        <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                      </v-badge>
+                       
                     </v-list-item-content>
+                      
                 </v-list-item>
 
               </v-list-group>
@@ -117,11 +133,6 @@
                   <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
-                <v-badge
-                            inline
-                            content="6"
-                            >
-                            <v-badge>
               <v-list-item
                 v-for="item in pages"
                 :key="item.path"
@@ -136,6 +147,7 @@
                   <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
                 </v-list-item-content>
               </v-list-item>
+                  
 
           </v-list>
 
@@ -172,6 +184,62 @@
 
           <v-toolbar-title variant="text">{{ $route.meta.title}}</v-toolbar-title>
           <v-spacer></v-spacer>
+
+          <!-- <v-menu
+              bottom
+              left
+              offset-y
+              origin="top right"
+              transition="scale-transition"
+            >
+              <template v-slot:activator="{ attrs, on }">
+                <v-btn
+                  class="ml-2"
+                  min-width="0"
+                  text
+                  v-bind="attrs"
+                  v-on="on"
+                >
+                  <v-badge
+                    color="red"
+                    :content="receivedLeavesQty"
+                    :value="receivedLeavesQty"
+                    bordered
+                    overlap
+                  >
+                    <template v-slot:badge>
+                      <span>{{receivedLeavesQty}}</span>
+                    </template>
+
+                    <v-icon>mdi-bell</v-icon>
+                  </v-badge>
+                </v-btn>
+              </template>
+
+              <v-list
+                :tile="false"
+                nav
+              >
+                <div>
+                  <app-bar-item
+                    v-for="(n, i) in notifications"
+                    :key="`item-${i}`"
+                  >
+                    <v-list-item-title v-text="n" />
+                  </app-bar-item>
+                </div>
+              </v-list>
+            </v-menu> -->
+
+            <v-btn
+              class="ml-2"
+              min-width="0"
+              text
+              to="/profile"
+            >
+              <v-icon>mdi-account</v-icon>
+            </v-btn>
+
         </v-app-bar>
 
       </div>

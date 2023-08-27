@@ -11,6 +11,8 @@ const CONFIG = {
   SHEET_NAME_LEAVES: 'leaveTypes',
   DB_WORKING_CALENDAR: '1tG6S-2wHwEBEi6IvV1a0oxyHjDKR1VKLPA6M-Y7XZG8',
   SHEET_WORKING_CALENDAR: 'workingCalendar',
+  DB_EMPLOYEE_INFORMATION: '1K4TtcaK0hrRa0yGv0xSI2jP4WI8WjhGrE-pgPdcx0Mk',
+  SHEET_UPDATE_PROFILE_REQUEST: 'updateProfileRequests',
   STATUS: {
     APPROVED: "Approved",
     REJECTED: "Rejected",
@@ -283,7 +285,7 @@ class App {
   }
 
   createItem({ createItemDB ,sheetName, item }) {
-    const workSheetID = (createItemDB === 'leaveDatabase') ? CONFIG.DB_LEAVES : null
+    const workSheetID = (createItemDB === 'leaveDatabase') ? CONFIG.DB_LEAVES : (createItemDB === 'employeeInformationDatabase') ? CONFIG.DB_EMPLOYEE_INFORMATION : null
     const ss = SpreadsheetApp.openById(workSheetID)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
