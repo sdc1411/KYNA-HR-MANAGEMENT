@@ -1,0 +1,177 @@
+<div>
+<v-row justify="center">
+  <v-col
+    cols="12"
+    md="8"
+  >
+    <v-card>
+      <v-card-title class="primary">
+        <span class="text-h5 white--text">Thông tin nhân sự</span>
+      </v-card-title>
+
+      <v-list>
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-account
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.cv_name}}</v-list-item-title>
+            <v-list-item-subtitle>Họ tên nhân sự</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+        
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-phone
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.candidate_phone}}</v-list-item-title>
+            <v-list-item-subtitle>Mobile</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-email
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.employee_email}}</v-list-item-title>
+            <v-list-item-subtitle>Email công ty</v-list-item-subtitle>
+          </v-list-item-content>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.candidate_email}}</v-list-item-title>
+            <v-list-item-subtitle>Email cá nhân</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-cake
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{ formatDate(loginUser.dob) }}</v-list-item-title>
+            <v-list-item-subtitle>Ngày sinh</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-map-marker
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.current_address}}</v-list-item-title>
+            <v-list-item-subtitle>Địa chỉ hiện tại</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-id-card
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.cmnd_id}}</v-list-item-title>
+            <v-list-item-subtitle>Số CMND/CCCD/Passport</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+        <v-divider inset></v-divider>
+
+        <v-list-item>
+          <v-list-item-icon>
+            <v-icon color="primary">
+              mdi-bank
+            </v-icon>
+          </v-list-item-icon>
+          <v-list-item-content>
+            <v-list-item-title>{{loginUser.bank_account_no}}</v-list-item-title>
+            <v-list-item-subtitle>Số tài khoản ngân hàng</v-list-item-subtitle>
+          </v-list-item-content>
+        </v-list-item>
+
+      </v-list>
+    </v-card>
+
+  </v-col>
+
+  <v-col
+    cols="12"
+    md="4"
+  >
+    <v-card>
+      <v-card-text class="text-center">
+
+          <!-- <v-avatar
+            class="profile"
+            color="grey"
+            size="164"
+            v-show="loginUser.sex === 'Nam'"
+          >
+            <v-img src="https://res.cloudinary.com/dpwmd0kym/image/upload/v1692350869/Kyna%20Project/avatar/AvatarMale_m1uejs.png"></v-img>
+          </v-avatar> -->
+
+          <!-- <v-avatar
+            class="profile"
+            color="grey"
+            size="164"
+            v-show="loginUser.sex === 'Nữ'"
+          >
+            <v-img src="https://res.cloudinary.com/dpwmd0kym/image/upload/v1692350869/Kyna%20Project/avatar/Avatar_Female_pfhqic.png"></v-img>
+          </v-avatar> -->
+
+          <v-list>
+              <p class="mb-1 black--text">
+                {{loginUser.cv_name}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Mã nhân viên: {{loginUser.Employee_code}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Cấp bậc: {{loginUser.level}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Vị trí: {{loginUser.position}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Bộ phận: {{loginUser.department}}
+              </p>
+              <p class="font-weight-light mb-1 black--text">
+                Nơi làm việc: {{loginUser.location}}
+              </p>
+
+              <v-btn
+                class="btn ma-2" color="primary" elevation="2" depressed small :disabled="loading" @click="showUpdateProfileForm" rounded
+              >
+                Yêu cầu cập nhật hồ sơ
+              </v-btn>
+          </v-list>
+
+      </v-card-text>
+    </v-card>
+  </v-col>
+</v-row>
+<?!= include_('dashboard/forms/dialog/updateprofileform.html') ?>
+</div>
+
+

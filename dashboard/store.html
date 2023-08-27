@@ -1,0 +1,270 @@
+<script src="https://unpkg.com/vuex@3.x"></script>
+<!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100272/unpkg.com_vuex_3.6.2_dist_vuex_g4fkb0.js"></script> -->
+
+<script>
+  const store = new Vuex.Store({
+    state: {
+      barColor: 'rgba(0, 0, 0, .8), rgba(0, 0, 0, .8)',
+      loading: false,
+      statusLogin: false,
+      app: {
+        name: "KYNA HR DASHBOARD",
+        title: "Welcome to HR Dashboard",
+      },
+      statusColor: {
+        Pending: "warning",
+        Approved: "success",
+        Rejected: "error",
+        Closed: "grey",
+        Cancelled: "grey",
+      },
+      snackbar: {},
+      dialog: {},
+      loginUser: {
+        employee_email: null,
+        cv_name: null,
+        department: null,
+        position: null,
+        Employee_code: null,
+        login_email: null,
+        onboard_date: null,
+        candidate_email: null,
+        dob: null,
+        sex: null,
+        current_address: null,
+        cmnd_id: null,
+        candidate_phone: null,
+        bank_account_no: null,
+        level: null,
+        location: null,
+        system_role: null,
+        employee_status: null,
+      },
+      users: {items: [], pages: 1},
+      leaveTypes: {items: [], pages: 1},
+      leaveRequests: {items: [], pages: 1},
+      workingCalendar: {items: [], pages: 1},
+    },
+    getters: {
+      isKynaEmail: function(state){
+        const loginEmail = state.loginUser.login_email
+        return loginEmail.includes("@kynaforkids.vn") ? true : false
+      },
+      isAdmin: function(state){
+        return state.loginUser.system_role ? state.loginUser.system_role === "Admin" : false
+      },
+      isHR: function(state){
+        return state.loginUser.system_role ? state.loginUser.system_role === "HR" : false
+      },
+      isManager: function(state){
+        return state.loginUser.system_role ? state.loginUser.system_role === "Manager" : false
+      },
+      assignedToEmails: function(state){
+        return state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email).map(item => item.employee_email)
+      },
+      listDepartments: function(state){
+        return state.users.items.map(item => item.department)
+      },
+      listLeaveTypes: function(state){
+        return state.leaveTypes.items.map(item => item.leaveTypeName)
+      },
+      sentLeaves: function(state){
+        return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email)
+      },
+      receivedLeaves: function(state){
+        return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email)
+      },
+      workingCalendarFilter: function(state){
+        return state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
+      },
+      // userTeamFilter: function(state){
+      //   return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR') ? state.users.items : state.users.items.filter(item => item.department == state.loginUser.department)
+      // },
+    },
+    mutations: {
+      updateState(state, {key, value}) {
+        state[key] = value
+      },
+      startLoading(state) {
+        state.loading = true
+      },
+      stopLoading(state) {
+        state.loading = false
+      },
+       showDialog(state, dialog){
+        state.loading = false
+        dialog.show = true
+        state.dialog = dialog
+      },
+      closeDialog(state){
+        state.dialog.show = false
+      },
+      showSnackbar(state, snackbar){
+        state.loading = false
+        snackbar.show = true
+        state.snackbar = snackbar
+      },
+      closeSnackbar(state){
+        state.snackbar.show = false
+      },
+      },
+
+    actions: {
+
+      async getDataLoginUser({commit}, params){
+        commit("startLoading")
+        try {
+          const location = await Utils.getLocation()
+          const path = location.path || "/"
+          const appInfo = await Utils.request("getAppInfo")
+          const {success, message, loginUser} = await Utils.request("getDataLoginUser", params)
+          const dataUsers = await Utils.request("getItems", {getItemDB: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
+          const dataLeaveTypes = await Utils.request("getItems", {getItemDB: "leaveDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
+          if (!success) {
+            commit("updateState", {key: "statusLogin", value: success})
+            commit("showSnackbar", {color: "error", message})
+            if (path !== "/login")  {
+              router.push("/login")
+            }
+            return
+          }
+          commit("updateState", {key: "statusLogin", value: success})
+          commit("updateState", {key: "loginUser", value: loginUser})
+          commit("updateState", {key: "app", value: appInfo})
+          commit("updateState", {key: "users", value: dataUsers})
+          commit("updateState", {key: "leaveTypes", value: dataLeaveTypes})
+          commit("stopLoading")
+          commit("showSnackbar", {color: "success", message})
+          
+          // console.log(loginUser)
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async getItems({commit}, params){
+        commit("startLoading")
+        // console.log(params)
+        try {
+          const data = await Utils.request("getItems", params)
+          commit("updateState", {key: params.sheetName, value: data})
+          // console.log(data)
+          commit("stopLoading")
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async createItem({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("createItem", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async updateApproval({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("updateApproval", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async createResignForms({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("createResignForms", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async createUpdateProfileForm({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("createUpdateProfileForm", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async createReviewForm({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("createReviewForm", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async login({commit}, params){
+        commit("startLoading")
+        try {
+          const location = await Utils.getLocation()
+          const path = location.path || "/"
+          const appInfo = await Utils.request("getAppInfo")
+          const {success, message, loginUser} = await Utils.request("getDataLoginNonUser", params)
+          // console.log(loginUser)
+          // console.log(params)
+          if (!success) {
+            commit("updateState", {key: "statusLogin", value: success})
+            commit("showSnackbar", {color: "error", message})
+            if (path !== "/login")  {
+              router.push("/login")
+            }
+            return
+          }
+          commit("updateState", {key: "statusLogin", value: success})
+          commit("updateState", {key: "loginUser", value: loginUser})
+          commit("updateState", {key: "app", value: appInfo})
+          if (path !== "/login") {
+            router.push(path)
+           } else{
+             router.push("/")
+           }
+          commit("stopLoading")
+          commit("showSnackbar", {color: "success", message})
+          // console.log(appInfo)
+          // console.log(loginUser)
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+    },
+  })
+</script>
+

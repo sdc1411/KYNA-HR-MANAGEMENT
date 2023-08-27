@@ -1,0 +1,20 @@
+<div>
+  <div class="d-flex align-center">
+    <v-spacer></v-spacer>
+    <v-form ref="search" @submit.prevent="onSearch">
+      <my-input :item="search"></my-input>
+    </v-form>
+  </div>
+  <v-data-table :headers="headers" :items="users.items" :items-per-page="pageSize">
+    <template v-slot:item.onboard_date="{ item }">
+      {{ item.onboard_date ? formatDate(item.onboard_date) : item.onboard_date}}
+    </template>
+  </v-data-table>
+  <div class="caption text-end" v-if="!search.value">
+    * Chỉ {{ pageSize }} records được hiển thị, sử dụng Search để xem nhiều hơn 
+  </div>
+  <!-- <div class="text-center pt-3">
+    <v-pagination :disabled="loading" v-model="page" :length="users.pages"></v-pagination>
+  </div> -->
+
+</div>

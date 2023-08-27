@@ -1,0 +1,54 @@
+<v-dialog v-model="dialog.show" :width="dialog.width || 600">
+    <v-form ref="form" @submit.prevent="submit">
+      <v-card>
+        <v-card-title class="text-h5 white--text" v-html="dialog.title" :class=" dialog.color || 'primary' ">
+        </v-card-title>
+        <v-card-text class="mt-6 pb-0">
+          <v-row align="center">
+              <v-col
+                cols="12"
+                class="mt-2"
+                sm="4">
+                <my-input :item="form.employeeCode"></my-input>
+              </v-col>
+              <v-col
+                cols="12"
+                class="mt-2"
+                sm="8">
+                 <my-input :item="form.fullName"></my-input>
+              </v-col>
+          </v-row>
+          <my-input :item="form.userEmail"></my-input>
+          <v-row align="center">
+              <v-col
+                cols="12"
+                class="mt-2"
+                sm="6">
+                <my-input :item="form.position"></my-input>
+              </v-col>
+              <v-col
+                cols="12"
+                class="mt-2"
+                sm="6">
+                <my-input :item="form.department"></my-input>
+              </v-col>
+          </v-row>
+        
+          <my-input :item="form.offReason"></my-input>
+          <date-picker :item="form.lastWorkingDay"></date-picker>
+
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn type="submit" text :color="dialog.color || 'primary' " :disabled="loading">
+            <v-icon left>{{ dialog.icon }}</v-icon>
+            {{ dialog.type }}
+          </v-btn>
+          <v-btn color=" grey " text @click="dialog.show = false" :disabled="loading">
+            <v-icon left>mdi-cancel</v-icon>
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+  </v-dialog>

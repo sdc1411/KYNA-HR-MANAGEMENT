@@ -1,0 +1,81 @@
+<v-dialog v-model="dialogReviewForm.show" :width="dialogReviewForm.width || 700">
+    <v-form ref="reviewForm" @click.prevent="submitReviewForm">
+      <v-card>
+        <v-card-title class="text-h5 white--text" v-html="dialogReviewForm.title" :class=" dialogReviewForm.color || 'primary' ">
+        </v-card-title>
+        <v-card-text class="mt-6 pb-0">
+          <my-input :item="reviewForm.userEmail"></my-input>
+          <my-input :item="reviewForm.fullName"></my-input>
+          <v-spacer></v-spacer>
+          <br>
+          <v-row>
+             <v-col
+                cols="12"
+                sm="4"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.applyEmployeeCode"></my-input>
+             </v-col>
+             <v-col
+                cols="12"
+                sm="8"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.applyEmployeeName"></my-input>
+             </v-col>
+          </v-row>
+          <my-input :item="reviewForm.applyEmployeeDepartment"></my-input>
+          <v-spacer></v-spacer>
+          <br>
+          <v-row>
+             <v-col
+                cols="12"
+                sm="4"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.newContractType"></my-input>
+             </v-col>
+             <v-col
+                cols="12"
+                sm="4"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.newPosition"></my-input>
+             </v-col>
+             <v-col
+                cols="12"
+                sm="4"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.newLevel"></my-input>
+             </v-col>
+          </v-row>
+          
+          <v-row>
+             <v-col
+                cols="12"
+                sm="8"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.newGrossSalary"></my-input>
+             </v-col>
+             <v-col
+                cols="12"
+                sm="4"
+                class="pa-1 ma-0">
+                  <my-input :item="reviewForm.salaryUnit"></my-input>
+             </v-col>
+          </v-row>
+          <my-input :item="reviewForm.newOther"></my-input>
+          <my-input :item="reviewForm.requestReason"></my-input>
+          <date-picker :item="reviewForm.newApplyDate"></date-picker>
+
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn @click="submitReviewForm" text :color="dialogReviewForm.color || 'primary' " :disabled="loading">
+            <v-icon left>{{ dialogReviewForm.icon }}</v-icon>
+            {{ dialogReviewForm.type }}
+          </v-btn>
+          <v-btn color=" grey " text @click="dialogReviewForm.show = false" :disabled="loading">
+            <v-icon left>mdi-cancel</v-icon>
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+  </v-dialog>

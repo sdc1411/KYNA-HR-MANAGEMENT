@@ -1,0 +1,424 @@
+<script>
+
+  const DatePicker = Vue.component("date-picker", {
+    props: {
+      item: {},
+    },
+    data: () => ({
+      date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      menu: false,
+      modal: false,
+      menu2: false,
+    }),
+    computed: {
+      computedDateFormatted () {
+        return this.formatDate(this.date)
+      },
+    },
+    watch: {
+    // Watch for changes in item.value and update the date property
+      "item.value": {
+        immediate: true,
+        handler(newValue) {
+          this.date = newValue;
+        },
+      },
+    },
+    methods: {
+      formatDate (date) {
+        if (!date) return null
+
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+    },
+    template:`
+        <v-menu
+          v-model="menu2"
+          :close-on-content-click="false"
+          :nudge-right="40"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="computedDateFormatted"
+              :label="item.label"
+              :rules="item.rules"
+              :outlined="item.outlined || false"
+              :prepend-icon="item.icon || false"
+              readonly
+              v-bind="attrs"
+              v-on="on"
+            ></v-text-field>
+          </template>
+          <v-date-picker
+            v-model="item.value"
+            @input="menu2 = false"
+          ></v-date-picker>
+        </v-menu>
+    `
+})
+
+  
+  const MyInput = Vue.component("my-input", {
+    props: {
+      item: {},
+    },
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+      }),
+    },
+    template: `
+      <v-select
+        v-if=" item.type === 'select' "
+        v-model="item.value"
+        :label="item.label"
+        :rules="item.rules"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :items="item.items"
+        :multiple="item.multiple"
+        @change="$emit('change')"
+        
+      ></v-select>
+      <v-autocomplete
+        v-else-if=" item.type === 'autocomplete' "
+        v-model="item.value"
+        :label="item.label"
+        :rules="item.rules"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :items="item.items"
+        :multiple="item.multiple"
+        @change="$emit('change')"
+        
+      ></v-autocomplete>
+      <v-textarea
+        v-else-if=" item.type === 'textarea' "
+        v-model.trim="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :auto-grow="item.autoGrow"
+        :rows="item.rows || 1"
+        @change="$emit('change')"
+      ></v-textarea>
+      <v-text-field
+        v-else-if=" item.type === 'number' "
+        v-model.number="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        @change="$emit('change')"
+      ></v-text-field>
+      <v-text-field
+        v-else
+        v-model.trim="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        @change="$emit('change')"
+      ></v-text-field>
+    `,
+  })
+
+  const MySnackbar = Vue.component("my-snackbar", {
+    computed: {
+      ...Vuex.mapState({snackbar: "snackbar"}),
+    },
+    template: `
+      <v-snackbar
+        v-model="snackbar.show"
+        :timeout="snackbar.timeout || 3000"
+        :color=" snackbar.color || 'secondary' "
+      >
+        {{ snackbar.message }}
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="white"
+            text
+            small
+            icon
+            tile
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-snackbar>
+    `
+  })
+
+  const MyDialog = Vue.component('my-dialog', {
+    computed: {
+      ...Vuex.mapState({dialog: "dialog"})
+    },
+    components: {
+      "my-input": MyInput,
+    },
+    template: `
+      <v-dialog
+        v-model="dialog.show"
+        :width="dialog.width || 500"
+      >
+      <v-card>
+        <v-card-title class="text-h5 white--text" v-html="dialog.title" :class=" dialog.color || 'primary' ">
+        </v-card-title>
+        <v-card-text class="mt-3">
+          {{ dialog.content }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :color=" dialog.color || 'primary' "
+            text
+            @click="$store.commit('closeDialog')"
+          >
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    `,
+  })
+
+  const MyNavbar = Vue.component('my-navbar',{
+    props: {
+      expandOnHover: {
+        type: Boolean,
+        default: false,
+      },
+      value: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
+    data: function() {
+      return {
+        drawer: true,
+      }
+    },
+    computed: {
+      pages(){
+        console.log(this.$router)
+        return this.$router.options.routes
+      },
+      ...Vuex.mapState({
+        barColor: "barColor",
+        loading: "loading",
+        statusLogin: "statusLogin",
+        app: "app",
+        loginUser: "loginUser",
+      }),
+      ...Vuex.mapGetters({
+        isKynaEmail: "isKynaEmail",
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+        isManager: "isManager",
+      }),
+   
+    },
+    template: `
+    <div v-if="statusLogin">
+        <v-navigation-drawer app v-model="drawer" class="background01"
+          :dark="barColor !== 'rgba(228, 226, 226, 1), rgba(255, 255, 255, 0.7)'"
+          :expand-on-hover="expandOnHover"
+          :right="$vuetify.rtl"
+          mobile-break-point="960"
+          app
+          width="260">
+          <v-divider class="mb-1" />
+          <v-list-item>
+              <v-list-item-avatar
+              class="align-self-center"
+              color="white"
+              contain
+            >
+              <v-img
+                src="https://res.cloudinary.com/dpwmd0kym/image/upload/v1692156912/Kyna%20Project/logo/eva3ne6uo0mpynnguq8q.png"
+                max-height="30"
+              />
+            </v-list-item-avatar>
+            <v-list-item-content>
+              <v-list-item-subtitle>{{ loginUser.login_email }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ loginUser.cv_name }}</v-list-item-subtitle>
+              <v-list-item-subtitle>{{ loginUser.position }}</v-list-item-subtitle>
+            </v-list-item-content>
+          </v-list-item>
+
+          <v-divider></v-divider>
+
+          <v-list
+            dense
+            nav
+          >
+              <v-list-item
+                v-for="item in pages"
+                :key="item.path"
+                :to="item.path"
+                link
+                v-if=" item.path === '/' && isKynaEmail "
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ item.meta.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item
+                v-for="item in pages"
+                :key="item.path"
+                :to="item.path"
+                link
+                v-if=" item.path === '/workingcalendar' && isKynaEmail "
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ item.meta.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+              
+              <v-list-group
+                  :value="true"
+                  prepend-icon="mdi-account-circle"
+                >
+                  <template v-slot:activator>
+                      <v-list-item-title>Lịch sử nghỉ phép</v-list-item-title>
+                  </template>
+                  <v-list-item
+                    v-for="item in pages"
+                    :key="item.path"
+                    :to="item.path"
+                    link
+                    v-if=" item.path === '/sentleaves' && isKynaEmail "
+                  >
+                    <v-list-item-icon>
+                      <v-icon>{{ item.meta.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+                <v-list-item
+                    v-for="item in pages"
+                    :key="item.path"
+                    :to="item.path"
+                    link
+                    v-if=" item.path === '/receivedleaves' && isKynaEmail "
+                  >
+                    <v-list-item-icon>
+                      <v-icon>{{ item.meta.icon }}</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                    </v-list-item-content>
+                </v-list-item>
+
+              </v-list-group>
+
+
+              <v-list-item
+                v-for="item in pages"
+                :key="item.path"
+                :to="item.path"
+                link
+                v-if=" item.path === '/users' && isKynaEmail "
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ item.meta.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item
+                v-for="item in pages"
+                :key="item.path"
+                :to="item.path"
+                link
+                v-if=" item.path === '/profile' && isKynaEmail "
+              >
+                <v-list-item-icon>
+                  <v-icon>{{ item.meta.icon }}</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content>
+                  <v-list-item-title>{{ item.meta.title }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+
+          </v-list>
+
+        </v-navigation-drawer>
+
+        <v-app-bar absolute
+          app
+          color="transparent"
+          flat
+          height="75">
+          <v-progress-linear
+            :active="loading"
+            :indeterminate="loading"
+            absolute
+            bottom
+            color="primary"
+          ></v-progress-linear>
+          
+          <v-btn
+            class="mr-3"
+            elevation="1"
+            fab
+            small
+            @click="drawer = !drawer"
+          >
+            <v-icon v-if="value">
+              mdi-view-quilt
+            </v-icon>
+
+            <v-icon v-else>
+              mdi-dots-vertical
+            </v-icon>
+          </v-btn>
+
+          <v-toolbar-title variant="text">{{ $route.meta.title}}</v-toolbar-title>
+          <v-spacer></v-spacer>
+        </v-app-bar>
+
+      </div>
+    `
+  })
+</script>
+
