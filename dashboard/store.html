@@ -41,6 +41,7 @@
         employee_status: null,
       },
       users: {items: [], pages: 1},
+      usersTeamSearch: {items: [], pages: 1},
       leaveTypes: {items: [], pages: 1},
       leaveRequests: {items: [], pages: 1},
       workingCalendar: {items: [], pages: 1},
@@ -77,9 +78,9 @@
       workingCalendarFilter: function(state){
         return state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
       },
-      // userTeamFilter: function(state){
-      //   return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR') ? state.users.items : state.users.items.filter(item => item.department == state.loginUser.department)
-      // },
+      userTeamFilter: function(state){
+        return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR') ? state.users.items : state.users.items.filter(item => item.department === state.loginUser.department)
+      },
     },
     mutations: {
       updateState(state, {key, value}) {
@@ -148,6 +149,19 @@
         try {
           const data = await Utils.request("getItems", params)
           commit("updateState", {key: params.sheetName, value: data})
+          // console.log(data)
+          commit("stopLoading")
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async getUsersTeamSearch({commit}, params){
+        commit("startLoading")
+        // console.log(params)
+        try {
+          const data = await Utils.request("getItems", params)
+          commit("updateState", {key: "usersTeamSearch", value: data})
           // console.log(data)
           commit("stopLoading")
         }catch(err){

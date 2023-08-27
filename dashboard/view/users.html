@@ -5,7 +5,12 @@
       <my-input :item="search"></my-input>
     </v-form>
   </div>
-  <v-data-table :headers="headers" :items="users.items" :items-per-page="pageSize">
+  <v-data-table :headers="headers" :items="userTeamFilter" :items-per-page="pageSize" v-if="!search.value">
+    <template v-slot:item.onboard_date="{ item }">
+      {{ item.onboard_date ? formatDate(item.onboard_date) : item.onboard_date}}
+    </template>
+  </v-data-table>
+  <v-data-table :headers="headers" :items="usersTeamSearch.items" :items-per-page="pageSize" v-if="search.value">
     <template v-slot:item.onboard_date="{ item }">
       {{ item.onboard_date ? formatDate(item.onboard_date) : item.onboard_date}}
     </template>

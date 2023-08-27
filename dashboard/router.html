@@ -209,7 +209,11 @@
         if (!this.$refs.leaveForm.validate()) return
         const item = Utils.getFormValues(this.leaveForm)
         item.requestedBy = this.loginUser.employee_email
-        item.dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
+        const dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
+        const dataAutoApproval = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Approved", comments: 'Đã tự động phê duyệt', timestamp: new Date()})))
+        // item.dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
+        item.dataApprovals = (this.loginUser.level === 'C-level' || this.loginUser.level === 'Manager' || this.loginUser.level === 'Director') ? dataAutoApproval : dataApprovals
+        item.status = (this.loginUser.level === 'C-level' || this.loginUser.level === 'Manager' || this.loginUser.level === 'Director') ? 'Approved' : 'Pending'
         item.dataLeaveDays = JSON.stringify(this.leaveDayRanges)
         item.pendingOn = item.assignedToEmails[0]
         item.assignedToEmails = JSON.stringify(item.assignedToEmails)
@@ -428,7 +432,7 @@
   const Users = {
     data: ()=>({
       page: 1,
-      pageSize: 30,
+      pageSize: -1,
       headers: [
         {text: "Mã nhân viên", value: "Employee_code"},
         {text: "Tên nhân viên", value: "cv_name"},
@@ -447,11 +451,13 @@
         loading: "loading",
         loginUser: "loginUser",
         users: "users",
+        usersTeamSearch: "usersTeamSearch",
         statusColor: 'statusColor',
       }),
       ...Vuex.mapGetters({
         isAdmin: "isAdmin",
         isHR: "isHR",
+        userTeamFilter: "userTeamFilter",
       }),
 
     },
@@ -467,28 +473,16 @@
         return `${day}/${month}/${year}`;
       },
       async onPageLoad(){
-        if (this.isAdmin || this.isHR) {
           this.$store.dispatch("getItems", {
           getItemDB: "userDatabase", 
           sheetName: "users", 
           page: this.page, 
           pageSize: this.pageSize,
           })
-        } else {
-          this.$store.dispatch("getItems", {
-          getItemDB: "userDatabase", 
-          sheetName: "users", 
-          page: this.page, 
-          pageSize: this.pageSize,
-          filters: {
-            department: this.loginUser.department,
-            },
-          })
-        }
       },
       onSearch(){
         if (!this.search.value){
-          this.$store.dispatch("getItems", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: this.pageSize, filter: { department: this.loginUser.department}})
+          this.$store.dispatch("getUsersTeamSearch", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters: { department: this.loginUser.department}})
         }else{
           const filters = {
             Employee_code: this.search.value,
@@ -496,7 +490,7 @@
             employee_email: this.search.value,
             department: this.search.value,
           }
-          this.$store.dispatch("getItems", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: this.pageSize, filters})
+          this.$store.dispatch("getUsersTeamSearch", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters})
         }
       },
     },
