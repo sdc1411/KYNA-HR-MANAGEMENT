@@ -54,10 +54,36 @@
           :weekdays="weekday"
           :type="type"
           :events="convertItemsToEvents(workingCalendarFilter)"
+          @click:event="showEvent"
+          @click:more="viewDay"
+          @click:date="viewDay"
           :event-overlap-mode="mode"
           :event-overlap-threshold="30"
           
-          
         ></v-calendar>
+        <v-menu
+          v-model="selectedOpen"
+          :close-on-content-click="false"
+          :activator="selectedElement"
+          offset-x
+        >
+          <v-card
+            color="grey lighten-4"
+            min-width="150px"
+            flat
+          >
+            <v-toolbar
+              :color="selectedEvent.color"
+              dark
+            >
+              <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
+              
+            </v-toolbar>
+            <v-card-text>
+              <span v-html="selectedEvent.details"></span>
+            </v-card-text>
+        
+          </v-card>
+        </v-menu>
       </v-sheet>
     </div>

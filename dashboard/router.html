@@ -103,7 +103,7 @@
         menuDate1: false,
         menuDate2: false,
       }],
-      workingShifts: ["Sáng","Chiều","Ca chiều(Đầu)","Ca chiều(Cuối)","Ca tối(Đầu)","Ca tối(Cuối)"],
+      workingShifts: ["Sáng","Chiều","C1(Đầu)","C1(Cuối)","C2(Đầu)","C2(Cuối)","C3(Đầu)","C3(Cuối)"],
       rules: {required: [v => !!v || "This is a required filed"],}
     }),
 
@@ -217,7 +217,7 @@
         item.dataLeaveDays = JSON.stringify(this.leaveDayRanges)
         item.pendingOn = item.assignedToEmails[0]
         item.assignedToEmails = JSON.stringify(item.assignedToEmails)
-        const success = await this.$store.dispatch("createItem", { createItemDB: "leaveDatabase", sheetName: "leaveRequests", item})
+        const success = await this.$store.dispatch("createItem", { createItemDB: "leaveDaysDatabase", sheetName: "leaveRequests", item})
         // console.log(item)
         if (success) this.dialogLeaveForm.show = false
         await this.onPageLoad()
@@ -293,7 +293,7 @@
       },
       async onPageLoad(){
         this.$store.dispatch("getItems", {
-          getItemDB: "leaveDatabase",
+          getItemDB: "leaveDaysDatabase",
           sheetName: "leaveRequests", 
           page: this.page, 
           pageSize: this.pageSize, 
@@ -311,7 +311,7 @@
           // assignedTo: this.form.assignedToEmails.value,
           type: this.dialog.type,
         }
-        const success = await this.$store.dispatch("updateApproval", {updateApprovalDB: "leaveDatabase", sheetName: "leaveRequests",item})
+        const success = await this.$store.dispatch("updateApproval", {updateApprovalDB: "leaveDaysDatabase", sheetName: "leaveRequests",item})
         // console.log(item)
         if (success) this.dialog.show = false
         await this.onPageLoad()
@@ -409,7 +409,7 @@
       },
       async onPageLoad(){
         this.$store.dispatch("getItems", {
-          getItemDB: "leaveDatabase",
+          getItemDB: "leaveDaysDatabase",
           sheetName: "leaveRequests", 
           page: this.page, 
           pageSize: this.pageSize, 
@@ -592,8 +592,11 @@
       ],
       value: '',
       events: [],
-      colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green'],
-      names: ['Ngày làm việc', 'Xin nghỉ phép', 'Work from home', 'Xin nghỉ bù', 'Nghỉ không lương'],
+      // colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green'],
+      names: ['Ngày làm việc', 'Nghỉ phép năm', 'Làm việc tại nhà', 'Nghỉ bù', 'Nghỉ không lương'],
+      selectedEvent: {},
+      selectedElement: null,
+      selectedOpen: false,
     }),
     computed: {
       ...Vuex.mapState({
@@ -611,6 +614,20 @@
     },
 
     methods: {
+      viewDay ({ date }) {
+        this.focus = date
+        this.type = 'day'
+      },
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
       async onPageLoad(){
           this.$store.dispatch("getItems", {
           getItemDB: "workingCalendarDatabase", 
@@ -619,7 +636,16 @@
           pageSize: this.pageSize,
           filters: {
             employeeCode: this.loginUser.Employee_code,
-            idStatus: this.loginUser.Employee_code,
+            },
+          })
+          this.$store.dispatch("getItems", {
+          getItemDB: "leaveDaysDatabase", 
+          sheetName: "leaveTracking", 
+          page: this.page, 
+          pageSize: this.pageSize,
+          filters: {
+            employeeCode: this.loginUser.Employee_code,
+            
             },
           })
       },
@@ -636,28 +662,42 @@
           const endDateTime = new Date(b1.getFullYear(),b1.getMonth(),b1.getDate(),b2.getHours(),b2.getMinutes())
 
           const event = {
-            name: item.workingTimeTypeName,
+            name: item.workingTimeTypeName || item.leaveTypes ,
             start: startDateTime,
             end: endDateTime,
-            color: this.getEventColor({ name: item.workingTimeTypeName }),
+            color: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes }),
             timed: true,
+            details: 'Từ ' + startDateTime.toLocaleString() + ' đến ' + endDateTime.toLocaleString() ,
           };
           events.push(event);
         });
-        console.log(events)
+        // console.log(events)
         return events;
-        
       },
-  
       getEventColor (event) {
         const colorMap = {
-        'Ngày làm việc': 'blue',
-        'Xin nghỉ phép': 'indigo',
-        'Work from home': 'deep-purple',
-        'Xin nghỉ bù': 'cyan',
+        'Ngày làm việc': 'cyan',
+        'Nghỉ phép năm': 'indigo',
+        'Làm việc tại nhà': 'deep-purple',
+        'Nghỉ bù': 'accent',
         'Nghỉ không lương': 'green',
       };
-      return colorMap[event.name] || 'blue';
+      return colorMap[event.name] || 'grey darken-1';
+      },
+      showEvent ({ nativeEvent, event }) {
+        const open = () => {
+          this.selectedEvent = event
+          this.selectedElement = nativeEvent.target
+          requestAnimationFrame(() => requestAnimationFrame(() => this.selectedOpen = true))
+        }
+
+        if (this.selectedOpen) {
+          this.selectedOpen = false
+          requestAnimationFrame(() => requestAnimationFrame(() => open()))
+        } else {
+          open()
+        }
+        nativeEvent.stopPropagation()
       },
 
     },

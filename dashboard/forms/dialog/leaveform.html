@@ -87,13 +87,21 @@
                 sm="3"
                 class="pa-1 ma-0"
               >
-                <v-select
-                  v-model="leaveDayRange.startShift"
-                  :items="workingShifts"
-                  label="Ca bắt đầu"
-                  :rules="rules.required"
-                  @change="$emit('change')"
-                ></v-select>
+                 <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-select
+                      v-model="leaveDayRange.startShift"
+                      :items="workingShifts"
+                      label="Ca bắt đầu"
+                      :rules="rules.required"
+                      v-bind="attrs"
+                      v-on="on"
+                      @change="$emit('change')"
+                    >
+                    </v-select>
+                  </template>
+                    <span>Sáng/Chiều: Áp dụng cho Team theo giờ làm việc 8h30-17h30 | Ca1: Áp dụng cho Ops ca từ 8h30 - 17h30 | Ca2: Áp dụng cho Ops ca từ 14h-22h | Ca3: áp dụng cho Ops ca gãy 8h30-12h và 18h-22h</span>
+                  </v-tooltip>
               </v-col>
               <v-col
                 cols="12"
@@ -122,13 +130,18 @@
                 sm="3"
                 class="pa-1 ma-0"
               >
-                <v-select
-                  v-model="leaveDayRange.endShift"
-                  :items="workingShifts"
-                  label="Ca kết thúc"
-                  :rules="rules.required"
-                  @change="$emit('change')"
-                ></v-select>
+                <v-tooltip bottom>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-select
+                      v-model="leaveDayRange.endShift"
+                      :items="workingShifts"
+                      label="Ca kết thúc"
+                      :rules="rules.required"
+                      @change="$emit('change')"
+                    ></v-select>
+                  </template>
+                    <span>Sáng/Chiều: Áp dụng cho Team theo giờ làm việc 8h30-17h30 | Ca1: Áp dụng cho Ops ca từ 8h30 - 17h30 | Ca2: Áp dụng cho Ops ca từ 14h-22h | Ca3: áp dụng cho Ops ca gãy 8h30-12h và 18h-22h</span>
+                  </v-tooltip>
               </v-col>
               <v-col
                 cols="12"

@@ -45,6 +45,7 @@
       leaveTypes: {items: [], pages: 1},
       leaveRequests: {items: [], pages: 1},
       workingCalendar: {items: [], pages: 1},
+      leaveTracking: {items: [], pages: 1},
     },
     getters: {
       isKynaEmail: function(state){
@@ -76,13 +77,19 @@
         return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email)
       },
       receivedLeavesQty: function(state){
-        return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email).length
+        return state.leaveRequests.items.filter(item => item.pendingOn == state.loginUser.employee_email && item.status === 'Pending').length
       },
       sentLeavesQty: function(state){
-        return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email).length
+        return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email && item.status === 'Pending').length
       },
       workingCalendarFilter: function(state){
-        return state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
+       
+        const workingCalendar = state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
+        const leaveTracking = state.leaveTracking.items.filter(item => item.employeeCode == state.loginUser.Employee_code)
+        leaveTracking.forEach((item) => {
+          workingCalendar.push(item)
+        })
+        return workingCalendar
       },
       userTeamFilter: function(state){
         return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR') ? state.users.items : state.users.items.filter(item => item.department === state.loginUser.department)
@@ -126,8 +133,8 @@
           const appInfo = await Utils.request("getAppInfo")
           const {success, message, loginUser} = await Utils.request("getDataLoginUser", params)
           const dataUsers = await Utils.request("getItems", {getItemDB: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
-          const dataLeaveTypes = await Utils.request("getItems", {getItemDB: "leaveDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
-          const dataLeaveRequests = await Utils.request("getItems", {getItemDB: "leaveDatabase",sheetName: "leaveRequests", page: 1, pageSize: -1})
+          const dataLeaveTypes = await Utils.request("getItems", {getItemDB: "leaveDaysDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
+          const dataLeaveRequests = await Utils.request("getItems", {getItemDB: "leaveDaysDatabase",sheetName: "leaveRequests", page: 1, pageSize: -1})
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})

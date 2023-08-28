@@ -7,7 +7,7 @@ const CONFIG = {
   REVERSE: true,
   DB_USER: '1U1US3obVZMpPquEEalr8lpHwlFm4u9KGWvhs45kURSI',
   SHEET_NAME_USER: 'users',
-  DB_LEAVES: '1v7QeP6-DM0Mt59jAdkbc0r4Sk9d19u51kChmpWA1x9k',
+  DB_LEAVES: '1_5H7EbRGjpOW5NkB6UfNSg_r8QnHOJiXsXAFkje0ZbA',
   SHEET_NAME_LEAVES: 'leaveTypes',
   DB_WORKING_CALENDAR: '1tG6S-2wHwEBEi6IvV1a0oxyHjDKR1VKLPA6M-Y7XZG8',
   SHEET_WORKING_CALENDAR: 'workingCalendar',
@@ -257,7 +257,7 @@ class App {
   // }
 
   getItems({ page, pageSize, getItemDB ,sheetName, filters }) {
-    const workSheetID = (getItemDB === 'userDatabase') ? CONFIG.DB_USER : (getItemDB === 'leaveDatabase') ? CONFIG.DB_LEAVES : (getItemDB === 'workingCalendarDatabase') ? CONFIG.DB_WORKING_CALENDAR : null
+    const workSheetID = (getItemDB === 'userDatabase') ? CONFIG.DB_USER : (getItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (getItemDB === 'workingCalendarDatabase') ? CONFIG.DB_WORKING_CALENDAR : null
     const ss = SpreadsheetApp.openById(workSheetID)
     const ws = ss.getSheetByName(sheetName)
     
@@ -285,7 +285,7 @@ class App {
   }
 
   createItem({ createItemDB ,sheetName, item }) {
-    const workSheetID = (createItemDB === 'leaveDatabase') ? CONFIG.DB_LEAVES : (createItemDB === 'employeeInformationDatabase') ? CONFIG.DB_EMPLOYEE_INFORMATION : null
+    const workSheetID = (createItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (createItemDB === 'employeeInformationDatabase') ? CONFIG.DB_EMPLOYEE_INFORMATION : null
     const ss = SpreadsheetApp.openById(workSheetID)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
@@ -335,7 +335,7 @@ class App {
   }
 
   updateApproval({ updateApprovalDB ,sheetName, item }) {
-    const workSheetID = (updateApprovalDB === 'leaveDatabase') ? CONFIG.DB_LEAVES : null
+    const workSheetID = (updateApprovalDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : null
     const ss = SpreadsheetApp.openById(workSheetID)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
