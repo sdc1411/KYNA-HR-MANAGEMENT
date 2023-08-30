@@ -17,6 +17,7 @@
         Rejected: "error",
         Closed: "grey",
         Cancelled: "grey",
+        Completed: "success",
       },
       snackbar: {},
       dialog: {},
@@ -46,6 +47,7 @@
       leaveRequests: {items: [], pages: 1},
       workingCalendar: {items: [], pages: 1},
       leaveTracking: {items: [], pages: 1},
+      resignEmployeeHandover: {items: [], pages: 1},
     },
     getters: {
       isKynaEmail: function(state){
@@ -93,6 +95,9 @@
       },
       userTeamFilter: function(state){
         return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR') ? state.users.items : state.users.items.filter(item => item.department === state.loginUser.department)
+      },
+      resignList: function(state){
+        return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR' || state.loginUser.employee_email === 'cb@kynaforkids.vn') ? state.resignEmployeeHandover.items.filter(item => item.status === 'Pending') : state.resignEmployeeHandover.items.filter(item => item.status === 'Pending' && item.department === state.loginUser.department)
       },
     },
     mutations: {
@@ -203,6 +208,21 @@
         commit("startLoading")
         try {
           const {success, message} = await Utils.request("updateApproval", params)
+          if (!success){
+            commit("showSnackbar", {color: "error", message})
+          }else{
+            commit("showSnackbar", {color: "success", message})
+            return true
+          }
+        }catch(err){
+          commit("showSnackbar", {color: "error", message: err.message})
+        }
+      },
+
+      async updateCompleteHandover({commit}, params){
+        commit("startLoading")
+        try {
+          const {success, message} = await Utils.request("updateCompleteHandover", params)
           if (!success){
             commit("showSnackbar", {color: "error", message})
           }else{

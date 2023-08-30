@@ -1,5 +1,7 @@
 <script src="https://unpkg.com/vue-router@3"></script>
 <!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100348/unpkg.com_vue-router_3.6.5_dist_vue-router_tabjvt.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.core.min.js" integrity="sha512-UhlYw//T419BPq/emC5xSZzkjjreRfN3426517rfsg/XIEC02ggQBb680V0VvP+zaDZ78zqse3rqnnI5EJ6rxA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
 
 <script>
 
@@ -19,43 +21,13 @@
         const item = Utils.getFormValues(this.form)
         // console.log(this.form)
         const success = await this.$store.dispatch("login", {item})
-      
       },
+      async loginGoogle() {
+        const success = await this.$store.dispatch("getDataLoginUser","getAppInfo")
+      }
     },
     template: `
-      <div>
-        <v-progress-linear
-            :active="loading"
-            :indeterminate="loading"
-            absolute
-            top
-            color="primary"
-          ></v-progress-linear>
-        <v-row>
-          <v-spacer></v-spacer>
-          <v-col cols="12" sm="8" md="6" lg="4">
-            <v-img
-              class="logo rounded mb-6"
-              :aspect-ratio="6.1/3.2"
-            ></v-img>
-            <v-alert
-              dense
-              border="left"
-              type="warning"
-            >
-              Bạn cần đăng nhập bằng <strong>Email công ty</strong> trước khi truy cập Dashboard nhân sự. Trường hợp chưa được cấp email công ty, có thể đăng nhập bằng email cá nhân đã đăng ký với công ty bằng form login bên dưới.
-            </v-alert>
-            <v-form ref="form" @submit.prevent="login">
-              <my-input :item="form.email"></my-input>
-              <v-btn type="submit" color="primary" :disabled="loading" depressed block large>
-                <v-icon left>mdi-login</v-icon>
-                Login
-              </v-btn>
-            </v-form>
-          </v-col>
-          <v-spacer></v-spacer>
-        </v-row>
-      </div>
+      <?!= include_('dashboard/view/login.html'); ?>
     `
   }
 
@@ -597,6 +569,7 @@
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
+      selectXlsx: null,
     }),
     computed: {
       ...Vuex.mapState({
@@ -699,6 +672,30 @@
         }
         nativeEvent.stopPropagation()
       },
+      uploadXlsx() {
+          if (!this.selectXlsx) {
+            console.log("Please upload a xlsx file")
+            return;
+          }
+          if (this.selectXlsx) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              /* Parse data */
+              const bstr = e.target.result;
+              const wb = XLSX.read(bstr, { type: "binary" });
+              /* Get first worksheet */
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              /* Convert array of arrays */
+              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+               
+              console.log(data);
+            };
+
+            reader.readAsBinaryString(this.selectXlsx);
+          }
+          this.selectXlsx = null;
+      },
 
     },
     watch:{
@@ -716,6 +713,97 @@
 
 
 
+  const ResignHandover = {
+    data: ()=>({
+      page: 1,
+      pageSize: -1,
+      headers: [
+        {text: "Mã nhân viên", value: "employeeCode"},
+        {text: "Tên nhân viên", value: "employeeName"},
+        {text: "Team", value: "department"},
+        {text: "Lý do", value: "resignReason"},
+        {text: "Ngày nghỉ việc", value: "resignDate"},
+        {text: "Chi tiết bàn giao", value: "dataHandover"},
+        {text: "Status", value: "status"},
+        {text: "Actions", value: "actions"},
+      ],
+      form: Utils.copyObject(Forms.ApprovalForm, true),
+      dialog: {},
+      comments: {
+        label: "Comments",
+        value: null,
+        type: "textarea",
+        icon: "mdi-comment-text",
+      },
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        items: 'resignList',
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
+      async onPageLoad(){
+        this.$store.dispatch("getItems", {
+          getItemDB: "resignDatabase",
+          sheetName: "resignEmployeeHandover", 
+          page: this.page, 
+          pageSize: this.pageSize, 
+          filters: {
+            status: "Pending",  
+          },
+        })
+      },
+      async submit(){
+        if (!this.$refs.form.validate()) return
+        const item = {
+          id: this.form.id.value,
+          comments: this.comments.value,
+          type: this.dialog.type,
+          completeEmail: this.loginUser.employee_email
+        }
+        const success = await this.$store.dispatch("updateCompleteHandover", {updateResignDB: "resignDatabase", sheetName: "resignEmployeeHandover",item})
+        // console.log(item)
+        if (success) this.dialog.show = false
+        await this.onPageLoad()
+      },
+      showCompletedForm(item){
+        this.form = Utils.copyObject(Forms.ApprovalForm, true)
+        Utils.updateFormValues(this.form, item, true)
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Complete",
+          title: "Complete",
+          color: "success",
+          icon: "mdi-check",
+        }
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+    <?!= include_('dashboard/view/resignlist/resignhandover.html'); ?>
+    `
+  }
+
+
 
   const routes = [
     { path: '/', component: Dashboard, meta: {icon: "mdi-view-dashboard", title: "Dashboard"} },
@@ -725,6 +813,7 @@
     { path: '/users', component: Users, meta: {icon: "mdi-microsoft-teams", title: "Danh sách Team Users"} },
     { path: '/profile', component: UserProfile, meta: {icon: "mdi-account", title: "Hồ sơ nhân viên"} },
     { path: '/workingcalendar', component: WorkingCalendar, meta: {icon: "mdi-calendar-account", title: "Lịch làm việc"} },
+    { path: '/resignhandover', component: ResignHandover, meta: {icon: "mdi-list-status", title: "Bàn giao nghỉ việc"} },
   
   ]
 

@@ -123,26 +123,26 @@
       <v-card-title class="primary text-center" style="display:block;">
         <span class="text-h6 white--text">{{loginUser.cv_name}}</span>
       </v-card-title>
-      <v-card-text class="text-center">
-
+      
           <!-- <v-avatar
             class="profile"
             color="grey"
             size="164"
-            v-show="loginUser.sex === 'Nam'"
+            v-if="loginUser.sex == 'Nam'"
           >
             <v-img src="https://res.cloudinary.com/dpwmd0kym/image/upload/v1692350869/Kyna%20Project/avatar/AvatarMale_m1uejs.png"></v-img>
           </v-avatar> -->
-
-          <!-- <v-avatar
+<!-- 
+          <v-avatar
             class="profile"
             color="grey"
             size="164"
-            v-show="loginUser.sex === 'Nữ'"
+            v-if="loginUser.sex == 'Nữ'"
           >
             <v-img src="https://res.cloudinary.com/dpwmd0kym/image/upload/v1692350869/Kyna%20Project/avatar/Avatar_Female_pfhqic.png"></v-img>
           </v-avatar> -->
 
+      <v-card-text class="text-center">
           <v-list>
               <p class="font-weight-light mb-1 black--text">
                 Mã nhân viên: {{loginUser.Employee_code}}

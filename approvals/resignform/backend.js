@@ -1,11 +1,12 @@
 const ConfigResignForm = {
   ApprovalFlow: {
     WorkSheet: '1f1cbt5Bfkck3iFvrLcT-1I9IQ_12MLAHzTItwtK5Vvs',
-    SheetName: 'Sheet1',
+    SheetName: 'flowResignApproval',
   },
   ResponseDatabase: {
     WorkSheet: '1yiORiErlPn8C94CqbTQzhgPnuDChJhkStXp_7EOdUGA',
     SheetName: 'Response_BMHR0202',
+    SheetHandover: 'resignEmployeeHandover',
     Title: 'BMHR-0202 Đơn xin thôi việc',
     DepartmentHeader: 'Phòng Ban',
     StatusHeader: '_status',
@@ -228,7 +229,7 @@ function SubmitResignForm() {
 
     const values = parsedValues()
     const headers = values[0]
-    const employee = values.find(value => value[headers.indexOf(this.responseIdHeader)] === responseId)[headers.indexOf(this.employeeHeader)]; // Retrieve the employee from the responses using responseId
+    const employee = values.find(value => value[headers.indexOf(this.responseIdHeader)] === responseId)[headers.indexOf(this.employeeHeader)]; 
     const department = values.find(value => value[headers.indexOf(this.responseIdHeader)] === responseId)[headers.indexOf(this.flowHeader)]; // Retrieve the department from the responses using responseId
 
     template.title = title
@@ -325,6 +326,7 @@ function SubmitResignForm() {
       sheet.getRange(row, 9).setValue(approver.newoffdate)
       this.sendNotification(taskId)
       this.sendCompletedNotification(taskId)
+      createResignHandover()
     }
   }
 
@@ -351,4 +353,79 @@ function approve({ taskId, comments, newoffdate }) {
 function reject({ taskId, comments, newoffdate }) {
   const app = new SubmitResignForm()
   app.reject({ taskId, comments, newoffdate })
+}
+
+
+function createResignHandover () {
+  const sheet = SpreadsheetApp.openById(ConfigResignForm.ResponseDatabase.WorkSheet).getSheetByName(ConfigResignForm.ResponseDatabase.SheetName);
+  const inputArray = sheet.getDataRange().getDisplayValues();
+  const outputArray = [];
+
+  for (let i = 1; i < inputArray.length; i++) {
+    const row = inputArray[i];
+    const id = row[9];
+    const employeeCode = row[2];
+    const employeeName = row[3];
+    const position = row[4];
+    const department = row[5];
+    const resignReason = row[6];
+    const requestResignDate = row[7];
+    const resignFinalDate = row[8];
+    const dataApprovals = (row[11])? JSON.parse(row[11]) : '';
+    const idStatus = row[10];
+    
+    // console.log(dataApprovals.email)
+
+    if (idStatus === 'Approved') {
+        const resignDate = (resignFinalDate == '') ? requestResignDate : resignFinalDate
+        const status = 'Pending'
+        const dataHandover = (dataApprovals === '') ? '' : [{"email":`${dataApprovals.email}`,"status":"Pending","comments":"","timestamp":""},{"email":"cb@kynaforkids.vn","status":"Pending","comments":"","timestamp":""}]
+        // console.log(dataHandover)
+        const newRow = [
+          id,
+          employeeCode,
+          employeeName,
+          position,
+          department,
+          resignReason,
+          resignDate,
+          dataHandover,
+          status
+        ];
+        outputArray.push(newRow);
+    }
+  }
+  
+  // console.log(outputArray)
+
+  const destinationSS = SpreadsheetApp.openById(ConfigResignForm.ResponseDatabase.WorkSheet).getSheetByName(ConfigResignForm.ResponseDatabase.SheetHandover);
+
+  if (outputArray.length > 0) {
+      for (let i = 0; i < outputArray.length; i++) {
+        const entry = outputArray[i];
+        
+        const duplicateRow = destinationSS
+          .createTextFinder(
+            `${entry[0]}`
+          )
+          .findNext();
+        
+        if (!duplicateRow) {
+          // Map each property to the corresponding column index in the sheet
+          const row = [
+            entry[0],
+            entry[1],
+            entry[2],
+            entry[3],
+            entry[4],
+            entry[5],
+            entry[6],
+            JSON.stringify(entry[7]),
+            entry[8],
+          ];
+
+          destinationSS.appendRow(row);
+        }
+      }
+  }
 }

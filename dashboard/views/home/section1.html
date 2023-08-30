@@ -3,7 +3,7 @@
         <v-icon left>mdi-plus</v-icon>
         Đơn xin nghỉ phép, làm việc tại nhà
       </v-btn>
-      <v-btn class="btn ma-2" color="primary" elevation="2" depressed small @click="showReviewForm" :disabled="loading">
+      <v-btn class="btn ma-2" color="primary" elevation="2" depressed small @click="showReviewForm" :disabled="loading" v-if="loginUser.level=='Manager' || loginUser.level=='C-level' || loginUser.level=='Director'">
         <v-icon left>mdi-plus</v-icon>
         Đề xuất thay đổi lương, chức vụ
       </v-btn>

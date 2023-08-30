@@ -13,9 +13,12 @@ const CONFIG = {
   SHEET_WORKING_CALENDAR: 'workingCalendar',
   DB_EMPLOYEE_INFORMATION: '1K4TtcaK0hrRa0yGv0xSI2jP4WI8WjhGrE-pgPdcx0Mk',
   SHEET_UPDATE_PROFILE_REQUEST: 'updateProfileRequests',
+  DB_RESIGN: '1yiORiErlPn8C94CqbTQzhgPnuDChJhkStXp_7EOdUGA',
+  SHEET_RESIGN_HANDOVER: 'resignEmployeeHandover',
   STATUS: {
     APPROVED: "Approved",
     REJECTED: "Rejected",
+    COMPLETED: "Completed",
   }
 }
 
@@ -40,7 +43,7 @@ function doGet(e) {
 
   const appType = e.parameters.appType;
 
-  if (appType === 'reviewform') {
+  if (appType == 'reviewform') {
     const appReviewForm = new SubmitReviewForm();
 
     if (e.parameter.taskId || e.parameter.responseId) {
@@ -76,7 +79,7 @@ function doGet(e) {
 
     } 
 
-  } else if (appType === 'resignform') {
+  } else if (appType == 'resignform') {
     
       const appResignForm = new SubmitResignForm();
       if (e.parameter.taskId || e.parameter.responseId) {
@@ -122,6 +125,7 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
     return htmlOutput;
   }
+  return ContentService.createTextOutput('Invalid appType');
 }
 
 
@@ -196,7 +200,6 @@ class App {
 
     const loginUserEmail = Session.getActiveUser().getEmail()
     // const loginUserEmail = "mouriddiep@gmail.com"
-    
 
     const emailColumnIndex = 0
 
@@ -257,7 +260,7 @@ class App {
   // }
 
   getItems({ page, pageSize, getItemDB ,sheetName, filters }) {
-    const workSheetID = (getItemDB === 'userDatabase') ? CONFIG.DB_USER : (getItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (getItemDB === 'workingCalendarDatabase') ? CONFIG.DB_WORKING_CALENDAR : null
+    const workSheetID = (getItemDB === 'userDatabase') ? CONFIG.DB_USER : (getItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (getItemDB === 'workingCalendarDatabase') ? CONFIG.DB_WORKING_CALENDAR : (getItemDB === 'resignDatabase') ? CONFIG.DB_RESIGN : null
     const ss = SpreadsheetApp.openById(workSheetID)
     const ws = ss.getSheetByName(sheetName)
     
@@ -364,6 +367,59 @@ class App {
     }
   }
 
+
+  updateFindCompleteItem(findItem, item) {
+    const data = JSON.parse(findItem.dataHandover)
+    const index = data.findIndex(v => v.email === item.completeEmail)
+    if (index === -1) {
+    throw new Error("Email nhân viên bàn giao chưa chính xác");
+    }
+    if (item.type === "Complete") {
+      data[index].status = CONFIG.STATUS.COMPLETED
+      data[index].comments = item.comments
+      data[index].timestamp = new Date()
+      if (data[index + 1]) {
+        if(data[index + 1].status === "Completed") {
+          item.status = CONFIG.STATUS.COMPLETED
+        }
+      } else if (data[index - 1]) {
+        if (data[index - 1].status === "Completed") {
+          item.status = CONFIG.STATUS.COMPLETED
+        }
+      }
+    }
+    item.dataHandover = JSON.stringify(data)
+  }
+
+  updateCompleteHandover({ updateResignDB ,sheetName, item }) {
+    const workSheetID = (updateResignDB === 'resignDatabase') ? CONFIG.DB_RESIGN : null
+    const ss = SpreadsheetApp.openById(workSheetID)
+    const ws = ss.getSheetByName(sheetName)
+    if (!ws) throw new Error(`${sheetName} was not found in the database.`)
+    const [headers, ...records] = ws.getDataRange().getValues()
+    const keys = this.createKeys(headers)
+    const filters = {}
+    filters[this.headerId] = item[this.headerId]
+    const index = records.findIndex(record => this.checkFilters(keys, record, filters, false))
+    if (index === -1) return {
+      success: false,
+      message: `Item with ID "${item.id}" was not found in the database.`
+    }
+    console.log(item)
+    const findItem = this.createItemObject(keys, records[index])
+    this.updateFindCompleteItem(findItem, item)
+    const values = this.createValues(keys, item, records[index])
+    ws.getRange(index + 2, 1, 1, values.length).setValues([values])
+    console.log(values)
+    console.log(keys)
+    console.log(item)
+    return {
+      success: true,
+      message: `Biên bản bàn giao đã được cập nhật thành công!`,
+      data: item,
+    }
+  }
+
 }
 
 const app = new App()
@@ -392,4 +448,5 @@ const getAppInfo = () => JSON.stringify(app.getAppInfo())
 const getItems = (params) => JSON.stringify(app.getItems(JSON.parse(params)))
 const createItem = (params) => JSON.stringify(app.createItem(JSON.parse(params)))
 const updateApproval = (params) => JSON.stringify(app.updateApproval(JSON.parse(params)))
+const updateCompleteHandover = (params) => JSON.stringify(app.updateCompleteHandover(JSON.parse(params)))
 
