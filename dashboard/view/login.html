@@ -27,6 +27,11 @@
                 Login
               </v-btn>
             </v-form>
+            <br>
+            <v-btn @click="logOut" color="accent" :disabled="loading" depressed block large>
+              <v-icon left>mdi-google</v-icon>
+              Chuyển tài khoản đăng nhập
+            </v-btn>
           </v-col>
           <v-spacer></v-spacer>
         </v-row>

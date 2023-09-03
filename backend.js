@@ -5,16 +5,14 @@ const CONFIG = {
   TITLE: "Welcome to HR Dashboard",
   PAGE_SIZE: 15,
   REVERSE: true,
-  DB_USER: '1U1US3obVZMpPquEEalr8lpHwlFm4u9KGWvhs45kURSI',
+  DATABASE : {
+    USERS: '1U1US3obVZMpPquEEalr8lpHwlFm4u9KGWvhs45kURSI',
+    LEAVES: '1_5H7EbRGjpOW5NkB6UfNSg_r8QnHOJiXsXAFkje0ZbA',
+    WORKING_CALENDAR: '1tG6S-2wHwEBEi6IvV1a0oxyHjDKR1VKLPA6M-Y7XZG8',
+    EMPLOYEE_INFORMATION: '1K4TtcaK0hrRa0yGv0xSI2jP4WI8WjhGrE-pgPdcx0Mk',
+    RESIGNS: '1yiORiErlPn8C94CqbTQzhgPnuDChJhkStXp_7EOdUGA',
+  },
   SHEET_NAME_USER: 'users',
-  DB_LEAVES: '1_5H7EbRGjpOW5NkB6UfNSg_r8QnHOJiXsXAFkje0ZbA',
-  SHEET_NAME_LEAVES: 'leaveTypes',
-  DB_WORKING_CALENDAR: '1tG6S-2wHwEBEi6IvV1a0oxyHjDKR1VKLPA6M-Y7XZG8',
-  SHEET_WORKING_CALENDAR: 'workingCalendar',
-  DB_EMPLOYEE_INFORMATION: '1K4TtcaK0hrRa0yGv0xSI2jP4WI8WjhGrE-pgPdcx0Mk',
-  SHEET_UPDATE_PROFILE_REQUEST: 'updateProfileRequests',
-  DB_RESIGN: '1yiORiErlPn8C94CqbTQzhgPnuDChJhkStXp_7EOdUGA',
-  SHEET_RESIGN_HANDOVER: 'resignEmployeeHandover',
   STATUS: {
     APPROVED: "Approved",
     REJECTED: "Rejected",
@@ -140,8 +138,11 @@ function include_(filename) {
 
 class App {
   constructor() {
-    this.dbUser = SpreadsheetApp.openById(CONFIG.DB_USER)
-    this.dbLeaveType = SpreadsheetApp.openById(CONFIG.DB_LEAVES)
+    this.dbUser = SpreadsheetApp.openById(CONFIG.DATABASE.USERS)
+    this.dbLeaves = SpreadsheetApp.openById(CONFIG.DATABASE.LEAVES)
+    this.dbWorkingCalendar = SpreadsheetApp.openById(CONFIG.DATABASE.WORKING_CALENDAR)
+    this.dbEmployeeInformation = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_INFORMATION)
+    this.dbResigns = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS)
     this.reverse = CONFIG.REVERSE
     this.headerId = 'id'
   }
@@ -247,21 +248,9 @@ class App {
   }
 
 
-  // getListLeaveType () {
-  //   const ws = this.dbLeaveType.getSheetByName(CONFIG.SHEET_NAME_LEAVES)
-  //   if (!ws) throw new Error(`${CONFIG.SHEET_NAME_LEAVES} was not found in the database`)
-  //   const [headers,...records] = ws.getDataRange().getValues()
-    
-  //   const keys = this.createKeys(headers)
-
-  //   const leaveTypeArray = records.map(values => this.createItemObject(keys, values))
-
-  //   return leaveTypeArray
-  // }
-
-  getItems({ page, pageSize, getItemDB ,sheetName, filters }) {
-    const workSheetID = (getItemDB === 'userDatabase') ? CONFIG.DB_USER : (getItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (getItemDB === 'workingCalendarDatabase') ? CONFIG.DB_WORKING_CALENDAR : (getItemDB === 'resignDatabase') ? CONFIG.DB_RESIGN : null
-    const ss = SpreadsheetApp.openById(workSheetID)
+  getItems({ page, pageSize, database ,sheetName, filters }) {
+  
+    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : null
     const ws = ss.getSheetByName(sheetName)
     
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
@@ -280,16 +269,15 @@ class App {
           .map(record => this.createItemObject(keys, record))
       }
     }
+    console.log(items)
     return {
       pages: Math.ceil(records.length / pageSize),
       items: records.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize).map(record => this.createItemObject(keys, record)),
     }
-    
   }
 
-  createItem({ createItemDB ,sheetName, item }) {
-    const workSheetID = (createItemDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : (createItemDB === 'employeeInformationDatabase') ? CONFIG.DB_EMPLOYEE_INFORMATION : null
-    const ss = SpreadsheetApp.openById(workSheetID)
+  createItem({ database ,sheetName, item }) {
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -301,6 +289,30 @@ class App {
     return {
       success: true,
       message: `Đơn ${item.id} của bạn đã được gửi thành công!`,
+      data: item,
+    }
+  }
+
+  updateItem({ database ,sheetName, item }) {
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
+    const ws = ss.getSheetByName(sheetName)
+    if (!ws) throw new Error(`${sheetName} was not found in the database.`)
+    const [headers, ...records] = ws.getDataRange().getValues()
+    const keys = this.createKeys(headers)
+    const filters = {}
+    filters[this.headerId] = item[this.headerId]
+    const index = records.findIndex(record => this.checkFilters(keys, record, filters, false))
+    if (index === -1) return {
+      success: false,
+      message: `Item with ID "${item.id}" was not found in the database.`
+    }
+    // item.modifiedOn = new Date()
+    delete item.createdOn
+    const values = this.createValues(keys, item, records[index])
+    ws.getRange(index + 2, 1, 1, values.length).setValues([values])
+    return {
+      success: true,
+      message: `Item ${item.id} has been updated successfully!`,
       data: item,
     }
   }
@@ -337,9 +349,8 @@ class App {
     
   }
 
-  updateApproval({ updateApprovalDB ,sheetName, item }) {
-    const workSheetID = (updateApprovalDB === 'leaveDaysDatabase') ? CONFIG.DB_LEAVES : null
-    const ss = SpreadsheetApp.openById(workSheetID)
+  updateApproval({ database ,sheetName, item }) {
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -391,9 +402,8 @@ class App {
     item.dataHandover = JSON.stringify(data)
   }
 
-  updateCompleteHandover({ updateResignDB ,sheetName, item }) {
-    const workSheetID = (updateResignDB === 'resignDatabase') ? CONFIG.DB_RESIGN : null
-    const ss = SpreadsheetApp.openById(workSheetID)
+  updateCompleteHandover({ database ,sheetName, item }) {
+    const ss = (database === 'resignDatabase') ? this.dbResigns : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -420,24 +430,47 @@ class App {
     }
   }
 
+  deleteItem({ database, sheetName, item }) {
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
+    const ws = ss.getSheetByName(sheetName)
+    if (!ws) throw new Error(`${sheetName} was not found in the database.`)
+    const [headers, ...records] = ws.getDataRange().getValues()
+    const keys = this.createKeys(headers)
+    const filters = {}
+    filters[this.headerId] = item[this.headerId]
+    const index = records.findIndex(record => this.checkFilters(keys, record, filters, false))
+    if (index === -1) return {
+      success: false,
+      message: `Item with ID "${item.id}" was not found in the database.`
+    }
+    ws.deleteRow(index + 2)
+    return {
+      success: true,
+      message: `Item ${item.id} has been deleted successfully!`,
+    }
+  }
+
 }
+
+
 
 const app = new App()
 
-const test = (params) => {
+// const test = () => {
   
+//   page = 1
+//   pageSize = 300
+//   database = 'userDatabase'
+//   sheetName = 'users'
+//   filters = {
+//     department: 'Marketing'
+//   }
+
+//   const data = app.getItems({ page, pageSize, database ,sheetName, filters })
   
-  const data = app.getListLeaveType()
-  console.log(data)
-  const detail = data.find(item => item['leaveTypeCode'] === 'NO')
-  console.log(detail)
-  const lyDoList = data.map(item => item['leaveTypeName']);
-  console.log(lyDoList)
-  const details2 = detail.leaveTypeName
-  console.log(details2)
-  return JSON.stringify(data)
-  
-}
+//   console.log(data)
+//   return data
+// }
 
 
 const getDataLoginUser = (params) => JSON.stringify(app.getDataLoginUser(params))
@@ -449,4 +482,8 @@ const getItems = (params) => JSON.stringify(app.getItems(JSON.parse(params)))
 const createItem = (params) => JSON.stringify(app.createItem(JSON.parse(params)))
 const updateApproval = (params) => JSON.stringify(app.updateApproval(JSON.parse(params)))
 const updateCompleteHandover = (params) => JSON.stringify(app.updateCompleteHandover(JSON.parse(params)))
+
+function logOut() {
+  ScriptApp.invalidateAuth();
+}
 

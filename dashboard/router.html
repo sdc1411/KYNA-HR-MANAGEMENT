@@ -22,8 +22,9 @@
         // console.log(this.form)
         const success = await this.$store.dispatch("login", {item})
       },
-      async loginGoogle() {
-        const success = await this.$store.dispatch("getDataLoginUser","getAppInfo")
+      async logOut() {
+        const sucess = await this.$store.dispatch("logOut")
+        // console.log("ok")
       }
     },
     template: `
@@ -189,7 +190,7 @@
         item.dataLeaveDays = JSON.stringify(this.leaveDayRanges)
         item.pendingOn = item.assignedToEmails[0]
         item.assignedToEmails = JSON.stringify(item.assignedToEmails)
-        const success = await this.$store.dispatch("createItem", { createItemDB: "leaveDaysDatabase", sheetName: "leaveRequests", item})
+        const success = await this.$store.dispatch("createItem", { database: "leaveDaysDatabase", sheetName: "leaveRequests", item})
         // console.log(item)
         if (success) this.dialogLeaveForm.show = false
         await this.onPageLoad()
@@ -265,7 +266,7 @@
       },
       async onPageLoad(){
         this.$store.dispatch("getItems", {
-          getItemDB: "leaveDaysDatabase",
+          database: "leaveDaysDatabase",
           sheetName: "leaveRequests", 
           page: this.page, 
           pageSize: this.pageSize, 
@@ -283,7 +284,7 @@
           // assignedTo: this.form.assignedToEmails.value,
           type: this.dialog.type,
         }
-        const success = await this.$store.dispatch("updateApproval", {updateApprovalDB: "leaveDaysDatabase", sheetName: "leaveRequests",item})
+        const success = await this.$store.dispatch("updateApproval", {database: "leaveDaysDatabase", sheetName: "leaveRequests",item})
         // console.log(item)
         if (success) this.dialog.show = false
         await this.onPageLoad()
@@ -381,7 +382,7 @@
       },
       async onPageLoad(){
         this.$store.dispatch("getItems", {
-          getItemDB: "leaveDaysDatabase",
+          database: "leaveDaysDatabase",
           sheetName: "leaveRequests", 
           page: this.page, 
           pageSize: this.pageSize, 
@@ -446,7 +447,7 @@
       },
       async onPageLoad(){
           this.$store.dispatch("getItems", {
-          getItemDB: "userDatabase", 
+          database: "userDatabase", 
           sheetName: "users", 
           page: this.page, 
           pageSize: this.pageSize,
@@ -454,7 +455,7 @@
       },
       onSearch(){
         if (!this.search.value){
-          this.$store.dispatch("getUsersTeamSearch", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters: { department: this.loginUser.department}})
+          this.$store.dispatch("getUsersTeamSearch", {database: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters: { department: this.loginUser.department}})
         }else{
           const filters = {
             Employee_code: this.search.value,
@@ -462,7 +463,7 @@
             employee_email: this.search.value,
             department: this.search.value,
           }
-          this.$store.dispatch("getUsersTeamSearch", {getItemDB: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters})
+          this.$store.dispatch("getUsersTeamSearch", {database: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters})
         }
       },
     },
@@ -525,7 +526,7 @@
         item.createdAt = new Date()
         item.idStatus = 'Waiting Approve'
         // console.log(item)
-        const success = await this.$store.dispatch("createItem", { createItemDB: "employeeInformationDatabase", sheetName: "updateProfileRequests", item})
+        const success = await this.$store.dispatch("createItem", { database: "employeeInformationDatabase", sheetName: "updateProfileRequests", item})
         if (success) this.dialogUpdateProfile.show = false
       },
     },
@@ -603,7 +604,7 @@
       },
       async onPageLoad(){
           this.$store.dispatch("getItems", {
-          getItemDB: "workingCalendarDatabase", 
+          database: "workingCalendarDatabase", 
           sheetName: "workingCalendar", 
           page: this.page, 
           pageSize: this.pageSize,
@@ -612,7 +613,7 @@
             },
           })
           this.$store.dispatch("getItems", {
-          getItemDB: "leaveDaysDatabase", 
+          database: "leaveDaysDatabase", 
           sheetName: "leaveTracking", 
           page: this.page, 
           pageSize: this.pageSize,
@@ -759,7 +760,7 @@
       },
       async onPageLoad(){
         this.$store.dispatch("getItems", {
-          getItemDB: "resignDatabase",
+          database: "resignDatabase",
           sheetName: "resignEmployeeHandover", 
           page: this.page, 
           pageSize: this.pageSize, 
@@ -776,7 +777,7 @@
           type: this.dialog.type,
           completeEmail: this.loginUser.employee_email
         }
-        const success = await this.$store.dispatch("updateCompleteHandover", {updateResignDB: "resignDatabase", sheetName: "resignEmployeeHandover",item})
+        const success = await this.$store.dispatch("updateCompleteHandover", {database: "resignDatabase", sheetName: "resignEmployeeHandover",item})
         // console.log(item)
         if (success) this.dialog.show = false
         await this.onPageLoad()

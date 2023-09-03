@@ -247,13 +247,17 @@
       }),
       ...Vuex.mapGetters({
         isKynaEmail: "isKynaEmail",
-        isAdmin: "isAdmin",
-        isHR: "isHR",
-        isManager: "isManager",
+        isAuthLeaveHandover: "isAuthLeaveHandover",
         receivedLeavesQty: "receivedLeavesQty",
         sentLeavesQty: "sentLeavesQty",
       }),
    
+    },
+    methods: {
+      async logOut() {
+        const sucess = await this.$store.dispatch("logOut")
+        // console.log("ok")
+      }
     },
     template: `
     <?!= include_('dashboard/components/mynavbar.html'); ?>

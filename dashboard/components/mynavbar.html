@@ -124,7 +124,7 @@
                 :key="item.path"
                 :to="item.path"
                 link
-                v-if=" item.path === '/resignhandover' && isKynaEmail "
+                v-if=" item.path === '/resignhandover' && isKynaEmail && isAuthLeaveHandover "
               >
                 <v-list-item-icon>
                   <v-icon>{{ item.meta.icon }}</v-icon>
@@ -255,6 +255,14 @@
               to="/profile"
             >
               <v-icon>mdi-account</v-icon>
+            </v-btn>
+            <v-btn
+              class="ml-2"
+              min-width="0"
+              text
+              @click="logOut"
+            >
+              <v-icon>mdi-logout</v-icon>
             </v-btn>
 
         </v-app-bar>

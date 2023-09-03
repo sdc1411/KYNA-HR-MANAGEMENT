@@ -55,13 +55,16 @@
         return loginEmail.includes("@kynaforkids.vn") ? true : false
       },
       isAdmin: function(state){
-        return state.loginUser.system_role ? state.loginUser.system_role === "Admin" : false
+        return state.loginUser.system_role == "Admin" ? true : false
       },
       isHR: function(state){
-        return state.loginUser.system_role ? state.loginUser.system_role === "HR" : false
+        return state.loginUser.system_role == "HR" ? true : false
       },
       isManager: function(state){
-        return state.loginUser.system_role ? state.loginUser.system_role === "Manager" : false
+        return state.loginUser.system_role == "Manager" ? true : false
+      },
+      isAuthLeaveHandover: function(state) {
+        return (state.loginUser.employee_email == "long.duong@kynaforkids.vn" || state.loginUser.level == "C-level" || state.loginUser.level == "Director" || state.loginUser.level == "Manager") ? true : false
       },
       assignedToEmails: function(state){
         return state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email).map(item => item.employee_email)
@@ -137,9 +140,9 @@
           const path = location.path || "/"
           const appInfo = await Utils.request("getAppInfo")
           const {success, message, loginUser} = await Utils.request("getDataLoginUser", params)
-          const dataUsers = await Utils.request("getItems", {getItemDB: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
-          const dataLeaveTypes = await Utils.request("getItems", {getItemDB: "leaveDaysDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
-          const dataLeaveRequests = await Utils.request("getItems", {getItemDB: "leaveDaysDatabase",sheetName: "leaveRequests", page: 1, pageSize: -1})
+          const dataUsers = await Utils.request("getItems", {database: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
+          const dataLeaveTypes = await Utils.request("getItems", {database: "leaveDaysDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
+          const dataLeaveRequests = await Utils.request("getItems", {database: "leaveDaysDatabase",sheetName: "leaveRequests", page: 1, pageSize: -1})
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})
@@ -297,6 +300,15 @@
           commit("showSnackbar", {color: "error", message: err.message})
         }
       },
+
+      async logOut() {
+        google.script.run
+        .withSuccessHandler(() => {
+          window.top.location.href = "https://script.google.com/macros/s/AKfycbw90tw50FCBUTqENy3cW86u_dJgxuIz_rufRVz72r32UwDI6vnCZuzrqGemkIL5gIKVVg/exec";
+          location.reload(true);
+        })
+        .logOut();
+      }
 
     },
   })
