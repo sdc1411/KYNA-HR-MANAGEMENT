@@ -67,7 +67,7 @@
         return (state.loginUser.employee_email == "long.duong@kynaforkids.vn" || state.loginUser.level == "C-level" || state.loginUser.level == "Director" || state.loginUser.level == "Manager") ? true : false
       },
       assignedToEmails: function(state){
-        return state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email).map(item => item.employee_email)
+        return state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.employee_email)
       },
       listDepartments: function(state){
         return state.users.items.map(item => item.department)
@@ -138,7 +138,7 @@
         try {
           const location = await Utils.getLocation()
           const path = location.path || "/"
-          const appInfo = await Utils.request("getAppInfo")
+          // const appInfo = await Utils.request("getAppInfo")
           const {success, message, loginUser} = await Utils.request("getDataLoginUser", params)
           const dataUsers = await Utils.request("getItems", {database: "userDatabase",sheetName: "users", page: 1, pageSize: -1})
           const dataLeaveTypes = await Utils.request("getItems", {database: "leaveDaysDatabase",sheetName: "leaveTypes", page: 1, pageSize: -1})
@@ -153,7 +153,7 @@
           }
           commit("updateState", {key: "statusLogin", value: success})
           commit("updateState", {key: "loginUser", value: loginUser})
-          commit("updateState", {key: "app", value: appInfo})
+          // commit("updateState", {key: "app", value: appInfo})
           commit("updateState", {key: "users", value: dataUsers})
           commit("updateState", {key: "leaveTypes", value: dataLeaveTypes})
           commit("updateState", {key: "leaveRequests", value: dataLeaveRequests})
@@ -272,7 +272,7 @@
         try {
           const location = await Utils.getLocation()
           const path = location.path || "/"
-          const appInfo = await Utils.request("getAppInfo")
+          // const appInfo = await Utils.request("getAppInfo")
           const {success, message, loginUser} = await Utils.request("getDataLoginNonUser", params)
           // console.log(loginUser)
           // console.log(params)
@@ -286,7 +286,7 @@
           }
           commit("updateState", {key: "statusLogin", value: success})
           commit("updateState", {key: "loginUser", value: loginUser})
-          commit("updateState", {key: "app", value: appInfo})
+          // commit("updateState", {key: "app", value: appInfo})
           if (path !== "/login") {
             router.push(path)
            } else{
