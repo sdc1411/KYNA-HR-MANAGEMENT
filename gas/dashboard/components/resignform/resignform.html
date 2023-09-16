@@ -1,0 +1,154 @@
+<script>
+  const ResignFormComponent = Vue.component('resign-form',{
+    data: ()=>({
+      dialogResignForm: {},
+      dialogResignFormOther: {},
+      form: Utils.copyObject(Forms.ResignForm, true),
+      selectedDepartment: null,
+      selectedEmail: null,
+      selectedName: null,
+      selectedEmployeeCode: null,
+      rules: {required: [v => !!v || "This is a required filed"],}
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        listDepartments: 'listDepartments',
+        userTeamFilter: 'userTeamFilter',
+        listEmails: 'assignedToEmails',
+        listEmployeeName: 'listEmployeeName',
+        listEmployeeCode: 'listEmployeeCode',
+      }),
+      emailFilter() {
+        if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.employee_email)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.employee_email)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.employee_email)
+        } else {
+          return this.listEmails
+        }
+      },
+      departmentFilter() {
+        if (this.selectedEmail) {
+          return this.userTeamFilter.filter(item => item.employee_email === this.selectedEmail).map(item => item.department)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.department)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.department)
+        } else {
+          return this.listDepartments
+        }
+      },
+      nameFilter() {
+        if (this.selectedEmail) {
+          return this.userTeamFilter.filter(item => item.employee_email === this.selectedEmail).map(item => item.cv_name)
+        } else if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.cv_name)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.cv_name)
+        } else {
+          return this.listEmployeeName
+        }
+      },
+      employeeCodeFilter() {
+        if (this.selectedEmail) {
+          return this.userTeamFilter.filter(item => item.employee_email === this.selectedEmail).map(item => item.Employee_code)
+        } else if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.Employee_code)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.Employee_code)
+        } else {
+          return this.listEmployeeCode
+        }
+      },
+      positionFilter() {
+        if (this.selectedEmail) {
+          return this.userTeamFilter.filter(item => item.employee_email === this.selectedEmail).map(item => item.position)
+        } else if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.position)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.position)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.position)
+        } else {
+          return null
+        }
+      },
+     
+    },
+    methods: {
+      formatDate (date) {
+        if (!date) return null
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+      async submitResignForm(){
+        if (!this.$refs.form.validate()) return
+        const item = Utils.getFormValues(this.form)
+        item.resignFormType = 'self'
+        item.requesterName = this.loginUser.cv_name
+        item.requesterEmail = this.loginUser.employee_email
+        item.requesterLevel = this.loginUser.level
+        item.employeeLevel = this.loginUser.level
+        // console.log(item)
+        const success = await this.$store.dispatch("createResignForms", {item})
+        if (success) this.dialogResignForm.show = false
+      },
+      async submitResignFormOther(){
+        if (!this.$refs.form.validate()) return
+        const item = Utils.getFormValues(this.form)
+        item.resignFormType = 'other'
+        item.requesterName = this.loginUser.cv_name
+        item.requesterEmail = this.loginUser.employee_email
+        item.requesterLevel = this.loginUser.level
+        item.employeeCode = this.selectedEmployeeCode
+        item.fullName = this.selectedName
+        item.userEmail = this.selectedEmail
+        item.department = this.selectedDepartment
+        const employeeLevel = this.userTeamFilter.filter(item => item.employee_email === this.selectedEmail).map(item => item.level)
+        item.employeeLevel = employeeLevel[0]
+        // console.log(item)
+        const success = await this.$store.dispatch("createResignForms", {item})
+        if (success) this.dialogResignFormOther.show = false
+      },
+      showResignForm(item){
+        const loginUser = this.$store.state.loginUser
+        this.form = Utils.copyObject(Forms.ResignForm, true)
+        this.form.fullName.items = loginUser.cv_name
+        this.form.userEmail.items = loginUser.employee_email
+        this.form.employeeCode.items = loginUser.Employee_code
+        this.form.department.items = loginUser.department
+        this.form.position.items = loginUser.position
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.dialogResignForm = {
+          show: true,
+          type: "Create",
+          title: "Đơn xin thôi việc",
+          color: "primary",
+          icon: "mdi-plus",
+        }
+      },
+      showResignFormOther(item){
+        const loginUser = this.$store.state.loginUser
+        this.form = Utils.copyObject(Forms.ResignForm, true)
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.dialogResignFormOther = {
+          show: true,
+          type: "Create",
+          title: "Đơn xin thôi việc",
+          color: "primary",
+          icon: "mdi-plus",
+        }
+      },
+    },
+    template: `
+    <?!= include_('dashboard/components/resignform/template.html'); ?>
+    `
+  })
+</script>

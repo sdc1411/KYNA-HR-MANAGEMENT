@@ -1,0 +1,66 @@
+<template>
+  <div>
+    <v-btn
+      class="btn ma-2" color="primary" elevation="2" depressed small :disabled="loading" @click="showUpdateProfileForm" rounded
+    >
+      <v-icon left>mdi-plus</v-icon>
+      Yêu cầu cập nhật hồ sơ
+    </v-btn>
+    <v-dialog v-model="dialogUpdateProfile.show" :width="dialogUpdateProfile.width || 500">
+      <v-form ref="updateProfileForm" @click.prevent="submitUpdateProfileForm">
+        <v-card>
+          <v-card-title class="text-h5 white--text" v-html="dialogUpdateProfile.title" :class=" dialogUpdateProfile.color || 'primary' ">
+          </v-card-title>
+          <v-card-text class="mt-6 pb-0">
+            <my-input :item="updateProfileForm.employeeCode"></my-input>
+            <my-input :item="updateProfileForm.employeeName"></my-input>
+            <my-input :item="updateProfileForm.position"></my-input>
+
+            
+            <v-select v-model="updateProfileForm.updateProfileType.value" 
+              :items="updateProfileForm.updateProfileType.items" 
+              chips 
+              :label="updateProfileForm.updateProfileType.label" 
+              :rules="updateProfileForm.updateProfileType.rules" 
+              prepend-icon="mdi-format-list-bulleted-type"
+              hideDetails="false"
+              dense="false"
+              @change="$emit('change')"
+            ></v-select>
+
+            <v-divider></v-divider>
+
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Address/Email/Phone'" :item="updateProfileForm.employeePhone"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Address/Email/Phone'" :item="updateProfileForm.candidateEmail"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Address/Email/Phone'" :item="updateProfileForm.currentAddress"></my-input>
+            
+
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin CMND/CCCD/Passport'" :item="updateProfileForm.cmndID"></my-input>
+              <date-picker v-if="updateProfileForm.updateProfileType.value === 'Thông tin CMND/CCCD/Passport'" :item="updateProfileForm.cmndDate"></date-picker>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin CMND/CCCD/Passport'" :item="updateProfileForm.cmndPlace"></my-input>
+
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin ngân hàng'" :item="updateProfileForm.bankAccountNo"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin ngân hàng'" :item="updateProfileForm.bankAccountName"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin ngân hàng'" :item="updateProfileForm.bankName"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Thông tin ngân hàng'" :item="updateProfileForm.bankBranch"></my-input>
+
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Khác'" :item="updateProfileForm.maritalStatus"></my-input>
+              <my-input v-if="updateProfileForm.updateProfileType.value === 'Khác'" :item="updateProfileForm.registerHospital"></my-input>
+
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="submitUpdateProfileForm" text :color="dialogUpdateProfile.color || 'primary' " :disabled="loading">
+              <v-icon left>{{ dialogUpdateProfile.icon }}</v-icon>
+              {{ dialogUpdateProfile.type }}
+            </v-btn>
+            <v-btn color=" grey " text @click="dialogUpdateProfile.show = false" :disabled="loading">
+              <v-icon left>mdi-cancel</v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+  </div>
+</template>

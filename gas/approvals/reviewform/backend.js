@@ -1,0 +1,353 @@
+const ConfigReviewForm = {
+  ApprovalFlow: {
+    WorkSheet: '1X-iY66XE3LtqIZhlEeQ9aVSa1FYe1xdAKaB4wyYhhZc',
+    SheetName: 'flowReviewApproval',
+  },
+  ResponseDatabase: {
+    SheetName: 'Form Responses 1',
+    Title: 'DXCB-0101 Đề xuất điều chỉnh quyền lợi',
+    DepartmentHeader: 'Phòng Ban',
+    StatusHeader: '_status',
+    RespondIdHeader: '_response_id',
+    EmailHeader: 'Email Address',
+    EmployeeHeader: 'Họ và tên nhân viên được điều chỉnh',
+  },
+  ApprovalFlowForms: {
+    ApprovalEmailForm: 'approvals/resignform/approval_email.html',
+    NotificationEmailForm: 'approvals/resignform/notification_email.html',
+    AprrovalIndexForm: 'approvals/reviewform/index.html',
+    ApprovalProgressForm: 'approvals/resignform/approval_progress.html',
+    NotificationEmail: 'cb@kynaforkids.vn',
+    AutoApproveEmail: 'tram@kynaforkids.vn',
+  },
+
+}
+
+
+// Lấy flow duyệt từ database
+function getApprovalFlowsReviewForm() {
+  const sheet = SpreadsheetApp.openById(ConfigReviewForm.ApprovalFlow.WorkSheet);
+  const data = sheet.getSheetByName(ConfigReviewForm.ApprovalFlow.SheetName).getDataRange().getValues();
+
+  const flows = {};
+
+  // Skip the header row (assumed the first row contains headers)
+  for (let i = 1; i < data.length; i++) {
+    const [department, email, name, title] = data[i];
+
+    if (!flows[department]) {
+      flows[department] = [];
+    }
+
+    flows[department].push({ email, name, title });
+  }
+
+  return flows;
+}
+
+
+
+const createReviewForm = (params) => JSON.stringify(submittingReviewForm(JSON.parse(params)))
+
+function submittingReviewForm(data) {
+  
+  const item = data.item
+  const applyDate = convertDate(item.newApplyDate)
+
+  // console.log(item)
+  // console.log(data)
+
+  const ws = SpreadsheetApp.openById(ConfigReviewForm.ApprovalFlow.WorkSheet)
+  const sheet = ws.getSheetByName(ConfigReviewForm.ResponseDatabase.SheetName)
+  const uid = ""
+  // const status = ""
+  
+
+  const responseId = Utilities.base64EncodeWebSafe(Utilities.getUuid())
+  sheet.appendRow([new Date(), item.userEmail, item.fullName, item.applyEmployeeName, item.applyEmployeeCode,item.applyEmployeeDepartment,item.newContractType,item.newPosition,item.newLevel,item.newGrossSalary,item.salaryUnit,item.newOther,applyDate,item.requestReason,uid,responseId]);
+
+  const app = new SubmitReviewForm();
+  app.onFormSubmit();
+
+  return {
+    success: true,
+    message: `Đề xuất điều chỉnh quyền lợi của bạn đã được gửi thành công!`,
+    data: sheet,
+  }
+
+}
+
+// flow phê duyệt đơn thôi việc
+function SubmitReviewForm() {
+
+  const responseWS = SpreadsheetApp.openById(ConfigReviewForm.ApprovalFlow.WorkSheet);
+  const url = CONFIG.WebAppUrl 
+  const title = ConfigReviewForm.ResponseDatabase.Title
+  const sheetname = ConfigReviewForm.ResponseDatabase.SheetName 
+  const FLOWS = getApprovalFlowsReviewForm();
+  const flowHeader = ConfigReviewForm.ResponseDatabase.DepartmentHeader 
+  const statusHeader = ConfigReviewForm.ResponseDatabase.StatusHeader
+  const responseIdHeader = ConfigReviewForm.ResponseDatabase.RespondIdHeader
+  const emailHeader = ConfigReviewForm.ResponseDatabase.EmailHeader
+  const employeeHeader = ConfigReviewForm.ResponseDatabase.EmployeeHeader
+
+  const pending = "Pending"
+  const approved = "Approved"
+  const rejected = "Rejected"
+  const waiting = "Waiting"
+
+  const sheet = responseWS.getSheetByName(sheetname);
+
+  function parsedValues() {
+    const values = sheet.getDataRange().getDisplayValues()
+    const parsedValues = values.map(value => {
+      return value.map(cell => {
+        try {
+          return JSON.parse(cell)
+        } catch (e) {
+          return cell
+        }
+      })
+    })
+    return parsedValues
+  }
+
+  this.getTaskById = (id) => {
+    const values = parsedValues()
+    const record = values.find(value => value.some(cell => cell.taskId === id))
+    const row = values.findIndex(value => value.some(cell => cell.taskId === id)) + 1
+
+    const headers = values[0]
+    const statusColumn = headers.indexOf(statusHeader) + 1
+    let task
+    let approver
+    let nextApprover
+    let column
+    let approvers
+    let email
+    let status
+    let responseId
+    if (record) {
+      task = record.slice(0, headers.indexOf(statusHeader) + 1).map((item, i) => {
+        return {
+          label: headers[i],
+          value: item
+        }
+      })
+      email = record[headers.indexOf(emailHeader)]
+      status = record[headers.indexOf(statusHeader)]
+      responseId = record[headers.indexOf(responseIdHeader)]
+      approver = record.find(item => item.taskId === id)
+      column = record.findIndex(item => item.taskId === id) + 1
+      nextApprover = record[record.findIndex(item => item.taskId === id) + 1]
+      approvers = record.filter(item => item.taskId)
+    }
+    return { email, status, responseId, task, approver, nextApprover, approvers, row, column, statusColumn }
+  }
+
+  this.getResponseById = (id) => {
+    const values = parsedValues()
+    const record = values.find(value => value.some(cell => cell === id))
+    const headers = values[0]
+    let task
+    let approvers
+    let status
+    if (record) {
+      task = record.slice(0, headers.indexOf(statusHeader) + 1).map((item, i) => {
+        return {
+          label: headers[i],
+          value: item
+        }
+      })
+      status = record[headers.indexOf(statusHeader)]
+      approvers = record.filter(item => item.taskId)
+    }
+    return { task, approvers, status }
+  }
+
+  this.sendApproval = ({ task, approver, approvers }) => {
+    const template = HtmlService.createTemplateFromFile(ConfigReviewForm.ApprovalFlowForms.ApprovalEmailForm)
+
+    const { responseId } = this.getTaskById(approver.taskId); // Get task data using the approver's taskId
+    const values = parsedValues()
+    const headers = values[0]
+    const employee = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(employeeHeader)]; // Retrieve the employee from the responses using responseId
+    const department = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(flowHeader)]; // Retrieve the department from the responses using responseId
+
+    template.title = title
+    template.task = task
+    template.approver = approver
+    template.approvers = approvers
+    template.actionUrl = `${url}?appType=reviewform&taskId=${approver.taskId}`
+
+    template.approved = approved
+    template.rejected = rejected
+    template.pending = pending
+    template.waiting = waiting
+
+    const subject = "Approval Required - " + title + " - " + employee + " - " + department
+
+    const options = {
+      htmlBody: template.evaluate().getContent()
+    }
+    GmailApp.sendEmail(approver.email, subject, "", options)
+  }
+
+
+  this.sendNotification = (taskId) => {
+    const { email, responseId, status, task, approvers } = this.getTaskById(taskId)
+    console.log({ email, status, task, approvers })
+    const template = HtmlService.createTemplateFromFile(ConfigReviewForm.ApprovalFlowForms.NotificationEmailForm)
+
+    const values = parsedValues();
+    const headers = values[0]
+    const employee = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(employeeHeader)]; // Retrieve the employee from the responses using responseId
+    const department = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(flowHeader)]; // Retrieve the department from the responses using responseId
+
+    template.title = title
+    template.task = task
+    template.status = status
+    template.approvers = approvers
+    template.approvalProgressUrl = `${url}?appType=reviewform&responseId=${responseId}`
+
+    template.approved = approved
+    template.rejected = rejected
+    template.pending = pending
+    template.waiting = waiting
+
+    const subject = `Approval ${status} - ${title} - ${employee} - ${department}`
+
+    const options = {
+      htmlBody: template.evaluate().getContent()
+    }
+    GmailApp.sendEmail(email, subject, "", options);
+  }
+
+
+  this.sendCompletedNotification = (taskId) => {
+    const { responseId, status, task, approvers } = this.getTaskById(taskId)
+    const template = HtmlService.createTemplateFromFile(ConfigReviewForm.ApprovalFlowForms.NotificationEmailForm)
+
+    const values = parsedValues()
+    const headers = values[0]
+    const employee = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(employeeHeader)]; // Retrieve the employee from the responses using responseId
+    const department = values.find(value => value[headers.indexOf(responseIdHeader)] === responseId)[headers.indexOf(flowHeader)]; // Retrieve the department from the responses using responseId
+
+    template.title = title
+    template.task = task
+    template.status = status
+    template.approvers = approvers
+    template.approvalProgressUrl = `${url}?appType=reviewform&responseId=${responseId}`
+
+    template.approved = approved
+    template.rejected = rejected
+    template.pending = pending
+    template.waiting = waiting
+
+    const email = ConfigReviewForm.ApprovalFlowForms.NotificationEmail
+    const subject = `Approval ${status} - ${title} - ${employee} - ${department}`
+
+    const options = {
+      htmlBody: template.evaluate().getContent()
+    }
+    GmailApp.sendEmail(email, subject, "", options)
+  }
+
+  // add addtional data to form response when update
+  this.onFormSubmit = () => {
+    const values = parsedValues()
+    const headers = values[0]
+    let lastRow = values.length
+    let startColumn = headers.indexOf(statusHeader) + 1
+    if (startColumn === 0) startColumn = headers.length + 1
+
+    // const newHeaders = [statusHeader]
+    const newValues = [pending]
+
+    const flowKey = values[lastRow - 1][headers.indexOf(flowHeader)]
+    const flow = FLOWS[flowKey] || FLOWS.defaultFlow
+    let taskId
+    flow.forEach((item, i) => {
+      // newHeaders.push("_approver_" + (i + 1))
+
+      item.comments = null
+      item.taskId = Utilities.base64EncodeWebSafe(Utilities.getUuid())
+      item.timestamp = new Date()
+      if (i === 0) {
+        item.status = pending
+        taskId = item.taskId
+      } else {
+        item.status = waiting
+      }
+      if (i !== flow.length - 1) {
+        item.hasNext = true
+      } else {
+        item.hasNext = false
+      }
+      newValues.push(JSON.stringify(item))
+    })
+
+    // sheet.getRange(1, startColumn, 1, newHeaders.length)
+    //   .setValues([newHeaders])
+    //   .setBackgroundColor("#34A853")
+    //   .setFontColor("#FFFFFF")
+
+    sheet.getRange(lastRow, startColumn, 1, newValues.length).setValues([newValues]);
+
+    const { task, email, approver, approvers, nextApprover, row, column, statusColumn } = this.getTaskById(taskId)
+    if (email == ConfigReviewForm.ApprovalFlowForms.AutoApproveEmail) {
+      approver.status = approved
+      approver.timestamp = new Date()
+      sheet.getRange(row, column).setValue(JSON.stringify(approver))
+      sheet.getRange(row, statusColumn).setValue(approved)
+      this.sendNotification(taskId)
+      this.sendCompletedNotification(taskId)
+    } else {
+      this.sendNotification(taskId)
+      this.sendApproval({ task, approver, approvers })
+    }
+
+  }
+
+  this.approve = ({ taskId, comments }) => {
+    const { task, approver, approvers, nextApprover, row, column, statusColumn } = this.getTaskById(taskId)
+    if (!approver) return
+    approver.comments = comments
+    approver.status = approved
+    approver.timestamp = new Date()
+    sheet.getRange(row, column).setValue(JSON.stringify(approver))
+    if (approver.hasNext) {
+      nextApprover.status = pending
+      nextApprover.timestamp = new Date()
+      sheet.getRange(row, column + 1).setValue(JSON.stringify(nextApprover))
+      this.sendApproval({ task, approver: nextApprover, approvers })
+    } else {
+      sheet.getRange(row, statusColumn).setValue(approved)
+      this.sendNotification(taskId)
+      this.sendCompletedNotification(taskId)
+    }
+  }
+
+  this.reject = ({ taskId, comments }) => {
+    const { task, approver, nextApprover, row, column, statusColumn } = this.getTaskById(taskId)
+    if (!approver) return
+    approver.comments = comments
+    approver.status = rejected
+    approver.timestamp = new Date()
+    sheet.getRange(row, column).setValue(JSON.stringify(approver))
+    sheet.getRange(row, statusColumn).setValue(rejected)
+    this.sendNotification(taskId)
+  }
+
+}
+
+
+function approveReviewForm({ taskId, comments }) {
+  const app = new SubmitReviewForm()
+  app.approve({ taskId, comments })
+}
+
+function rejectReviewForm({ taskId, comments }) {
+  const app = new SubmitReviewForm()
+  app.reject({ taskId, comments })
+}

@@ -1,0 +1,87 @@
+<script>
+  const ReviewFormComponent = Vue.component('review-form',{
+    data: ()=>({
+      reviewForm: Utils.copyObject(Forms.ReviewForm, true),
+      dialogReviewForm: {},
+      selectedDepartment: null,
+      selectedName: null,
+      selectedEmployeeCode: null,
+      rules: {required: [v => !!v || "This is a required filed"],}
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        listDepartments: 'listDepartments',
+        userTeamFilter: 'userTeamFilter',
+        listEmployeeName: 'listEmployeeName',
+        listEmployeeCode: 'listEmployeeCode',
+      }),
+      departmentFilter() {
+        if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.department)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.department)
+        } else {
+          return this.listDepartments
+        }
+      },
+      nameFilter() {
+        if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.cv_name)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.cv_name)
+        } else {
+          return this.listEmployeeName
+        }
+      },
+      employeeCodeFilter() {
+        if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.Employee_code)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.Employee_code)
+        } else {
+          return this.listEmployeeCode
+        }
+      },
+     
+    },
+    methods: {
+      formatDate (date) {
+        if (!date) return null
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+      showReviewForm(item){
+        const loginUser = this.$store.state.loginUser
+        this.reviewForm = Utils.copyObject(Forms.ReviewForm, true)
+        this.reviewForm.fullName.items = loginUser.cv_name
+        this.reviewForm.userEmail.items = loginUser.employee_email
+        this.reviewForm.applyEmployeeDepartment.items = this.$store.getters.listDepartments
+        this.$refs.reviewForm && this.$refs.reviewForm.resetValidation()
+        this.dialogReviewForm = {
+          show: true,
+          type: "Create",
+          title: "Đề xuất điều chỉnh quyền lợi nhân viên",
+          color: "primary",
+          icon: "mdi-plus",
+        }
+      },
+      async submitReviewForm(){
+        if (!this.$refs.reviewForm.validate()) return
+        const item = Utils.getFormValues(this.reviewForm)
+        item.applyEmployeeCode = this.selectedEmployeeCode
+        item.applyEmployeeName = this.selectedName
+        item.applyEmployeeDepartment = this.selectedDepartment
+        const success = await this.$store.dispatch("createReviewForm", {item})
+        if (success) this.dialogReviewForm.show = false
+      },
+    },
+    template: `
+    <?!= include_('dashboard/components/reviewform/template.html'); ?>
+    `
+  })
+</script>

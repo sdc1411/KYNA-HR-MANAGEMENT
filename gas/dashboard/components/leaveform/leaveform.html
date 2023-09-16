@@ -1,0 +1,101 @@
+<script>
+  const LeaveFormComponent = Vue.component('leave-form',{
+    data: ()=>({
+      leaveForm: Utils.copyObject(Forms.LeaveForm, true),
+      dialogLeaveForm: {},
+      leaveDayRanges: [{
+        startShift:'',
+        startDate:'',
+        endShift:'',
+        endDate:'',
+      }],
+      workingShifts: ["Sáng","Chiều","Ca A(Đầu)","Ca A(Cuối)","Ca B(Đầu)","Ca B(Cuối)","Ca C(Đầu)","Ca C(Cuối)","Ca D(Đầu)","Ca D(Cuối)"],
+      rules: {required: [v => !!v || "This is a required filed"],},
+      menuDate: [{
+        menuDate1: false,
+        menuDate2: false,
+      }],
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+        leaveTypes: 'leaveTypes',
+      }),
+      ...Vuex.mapGetters({
+        listLeaveTypes: 'listLeaveTypes',
+        assignedToEmails: 'assignedToEmails',
+        listDepartments: 'listDepartments',
+      }),
+     
+    },
+    methods: {
+      formatDate (date) {
+        if (!date) return null
+
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+      infoLeaveType(value) {
+        const a = this.leaveTypes.items.filter(item => item.leaveTypeName === value)
+        const a1 = a.map(item => item.isCountSalary)
+        const a2 = a.map(item => item.maxLeaveNo)
+        const a3 = a.map(item => item.leaveTypeUnit)
+        const result = (a2[0] === '') ? `${a1[0]} tính công` : `${a1[0]} tính công (tối đa: ${a2[0]} ${a3[0]})`
+        return (value.length === 0) ? '' : result
+      },
+      showLeaveForm(item){
+        const loginUser = this.$store.state.loginUser
+        this.leaveForm = Utils.copyObject(Forms.LeaveForm, true)
+        this.leaveForm.employeeName.items = loginUser.cv_name
+        this.leaveForm.employeeCode.items = loginUser.Employee_code
+        this.leaveForm.department.items = loginUser.department
+        this.leaveForm.leaveTypes.items = this.listLeaveTypes
+        this.leaveForm.assignedToEmails.items = this.assignedToEmails
+        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation()
+        this.dialogLeaveForm = {
+          show: true,
+          type: "Create",
+          title: "Đơn xin nghỉ phép, làm việc tại nhà",
+          color: "primary",
+          icon: "mdi-plus",
+          width: "800"
+        }
+      },
+      async submitLeaveForm(){
+        if (!this.$refs.leaveForm.validate()) return
+        const item = Utils.getFormValues(this.leaveForm)
+        item.requestedBy = this.loginUser.employee_email
+        const dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
+        const dataAutoApproval = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Approved", comments: 'Đã tự động phê duyệt', timestamp: new Date()})))
+        // item.dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
+        item.dataApprovals = (this.loginUser.level === 'C-level' || this.loginUser.level === 'Manager' || this.loginUser.level === 'Director') ? dataAutoApproval : dataApprovals
+        item.status = (this.loginUser.level === 'C-level' || this.loginUser.level === 'Manager' || this.loginUser.level === 'Director') ? 'Approved' : 'Pending'
+        item.dataLeaveDays = JSON.stringify(this.leaveDayRanges)
+        item.pendingOn = item.assignedToEmails[0]
+        item.assignedToEmails = JSON.stringify(item.assignedToEmails)
+        const success = await this.$store.dispatch("createItem", { database: "leaveDaysDatabase", sheetName: "leaveRequests", item})
+        // console.log(item)
+        if (success) this.dialogLeaveForm.show = false
+        await this.onPageLoad()
+      },
+      addMoreLeaveDay() {
+        this.leaveDayRanges.push({
+          startShift:'',
+          startDate:'',
+          endShift:'',
+          endDate:'',
+        })
+      },
+      deleteLeaveDay(index) {
+        if(this.leaveDayRanges.length > 1) {
+          this.leaveDayRanges.splice(index,1);
+        }
+      },
+    },
+    template: `
+    <?!= include_('dashboard/components/leaveform/template.html'); ?>
+    `
+  })
+</script>

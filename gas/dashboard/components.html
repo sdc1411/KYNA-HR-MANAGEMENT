@@ -1,0 +1,259 @@
+<script>
+
+  const DatePicker = Vue.component("date-picker", {
+    props: {
+      item: {},
+    },
+    data: () => ({
+      date: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      menu: false,
+      modal: false,
+      menu2: false,
+    }),
+    computed: {
+      computedDateFormatted () {
+        return this.formatDate(this.date)
+      },
+    },
+    watch: {
+    // Watch for changes in item.value and update the date property
+      "item.value": {
+        immediate: true,
+        handler(newValue) {
+          this.date = newValue;
+        },
+      },
+    },
+    methods: {
+      formatDate (date) {
+        if (!date) return null
+
+        const [year, month, day] = date.split('-')
+        return `${day}/${month}/${year}`
+      },
+    },
+    template:`
+        <v-menu
+          v-model="menu2"
+          :close-on-content-click="false"
+          :nudge-right="40"
+          transition="scale-transition"
+          offset-y
+          min-width="auto"
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-text-field
+              v-model="computedDateFormatted"
+              :label="item.label"
+              :rules="item.rules"
+              :outlined="item.outlined || false"
+              :prepend-icon="item.icon || false"
+              readonly
+              v-bind="attrs"
+              v-on="on"
+            ></v-text-field>
+          </template>
+          <v-date-picker
+            v-model="item.value"
+            @input="menu2 = false"
+          ></v-date-picker>
+        </v-menu>
+    `
+})
+
+  
+  const MyInput = Vue.component("my-input", {
+    props: {
+      item: {},
+    },
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+      }),
+    },
+    template: `
+      <v-select
+        v-if=" item.type === 'select' "
+        v-model="item.value"
+        :label="item.label"
+        :rules="item.rules"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :items="item.items"
+        :multiple="item.multiple"
+        @change="$emit('change')"
+        
+      ></v-select>
+      <v-autocomplete
+        v-else-if=" item.type === 'autocomplete' "
+        v-model="item.value"
+        :label="item.label"
+        :rules="item.rules"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :items="item.items"
+        :multiple="item.multiple"
+        @change="$emit('change')"
+        
+      ></v-autocomplete>
+      <v-textarea
+        v-else-if=" item.type === 'textarea' "
+        v-model.trim="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        :auto-grow="item.autoGrow"
+        :rows="item.rows || 1"
+        @change="$emit('change')"
+      ></v-textarea>
+      <v-text-field
+        v-else-if=" item.type === 'number' "
+        v-model.number="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        @change="$emit('change')"
+      ></v-text-field>
+      <v-text-field
+        v-else
+        v-model.trim="item.value"
+        :label="item.label"
+        :type="item.type"
+        :placeholder="item.placeholder"
+        :hideDetails="item.hideDetails || false"
+        :outlined="item.outlined || false"
+        :dense="item.dense || false"
+        :rules="item.rules"
+        :prepend-inner-icon="item.icon"
+        :disabled="item.disabled || loading"
+        @change="$emit('change')"
+      ></v-text-field>
+    `,
+  })
+
+  const MySnackbar = Vue.component("my-snackbar", {
+    computed: {
+      ...Vuex.mapState({snackbar: "snackbar"}),
+    },
+    template: `
+      <v-snackbar
+        v-model="snackbar.show"
+        :timeout="snackbar.timeout || 3000"
+        :color=" snackbar.color || 'secondary' "
+      >
+        {{ snackbar.message }}
+        <template v-slot:action="{ attrs }">
+          <v-btn
+            color="white"
+            text
+            small
+            icon
+            tile
+            v-bind="attrs"
+            @click="$store.commit('closeSnackbar')"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-snackbar>
+    `
+  })
+
+  const MyDialog = Vue.component('my-dialog', {
+    computed: {
+      ...Vuex.mapState({dialog: "dialog"})
+    },
+    components: {
+      "my-input": MyInput,
+    },
+    template: `
+      <v-dialog
+        v-model="dialog.show"
+        :width="dialog.width || 500"
+      >
+      <v-card>
+        <v-card-title class="text-h5 white--text" v-html="dialog.title" :class=" dialog.color || 'primary' ">
+        </v-card-title>
+        <v-card-text class="mt-3">
+          {{ dialog.content }}
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            :color=" dialog.color || 'primary' "
+            text
+            @click="$store.commit('closeDialog')"
+          >
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    `,
+  })
+
+  const MyNavbar = Vue.component('my-navbar',{
+    props: {
+      expandOnHover: {
+        type: Boolean,
+        default: false,
+      },
+      value: {
+        type: Boolean,
+        default: false,
+      },
+    },
+    data: function() {
+      return {
+        drawer: true,
+      }
+    },
+    computed: {
+      pages(){
+        // console.log(this.$router)
+        return this.$router.options.routes
+      },
+      ...Vuex.mapState({
+        barColor: "barColor",
+        loading: "loading",
+        statusLogin: "statusLogin",
+        app: "app",
+        loginUser: "loginUser",
+      }),
+      ...Vuex.mapGetters({
+        isKynaEmail: "isKynaEmail",
+        isAuthLeaveHandover: "isAuthLeaveHandover",
+        receivedLeavesQty: "receivedLeavesQty",
+        sentLeavesQty: "sentLeavesQty",
+      }),
+   
+    },
+    methods: {
+      async loginWithGoogle() {
+        const sucess = await this.$store.dispatch("loginWithGoogle")
+      }
+    },
+    template: `
+    <?!= include_('dashboard/components/mynavbar.html'); ?>
+    `
+  })
+</script>
+
