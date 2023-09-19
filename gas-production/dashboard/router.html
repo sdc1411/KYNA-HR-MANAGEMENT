@@ -155,7 +155,7 @@
         const item = {
           id: this.form.id.value,
           comments: this.comments.value,
-          // assignedTo: this.form.assignedToEmails.value,
+          assignedToEmails: this.form.assignedToEmails.value,
           type: this.dialog.type,
         }
         const success = await this.$store.dispatch("updateApproval", {database: "leaveDaysDatabase", sheetName: "leaveRequests",item})
@@ -191,24 +191,22 @@
           icon: "mdi-close",
         }
       },
-      // showForwardForm(item){
-      //   this.form = Utils.copyObject(Forms.LeaveForm, true)
-      //   // this.form.assignedToEmails.items = this.assignedToEmails.filter(v => !item.assignedToEmails.includes(v) && item.requestedBy !== v)
-      //   this.form.assignedToEmails.items = this.assignedToEmails.filter(v => !item.assignedToEmails.includes(v))
-      //   Utils.updateFormValues(this.form, item)
-      //   this.form.assignedToEmails.value = null
-      //   this.form.assignedToEmails.multiple = false
-      //   this.form.request.disabled = true
-      //   this.$refs.form && this.$refs.form.resetValidation()
-      //   this.comments.value = null
-      //   this.dialog = {
-      //     show: true,
-      //     type: "Forward",
-      //     title: "Forward",
-      //     color: "secondary",
-      //     icon: "mdi-arrow-right",
-      //   }
-      // },
+      showForwardForm(item){
+        this.form = Utils.copyObject(Forms.LeaveForm, true)
+        this.form.assignedToEmails.items = this.assignedToEmails.filter(v => !item.assignedToEmails.includes(v) && item.requestedBy !== v)
+        Utils.updateFormValues(this.form, item)
+        this.form.assignedToEmails.value = null
+        this.form.assignedToEmails.multiple = false
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Forward",
+          title: "Forward",
+          color: "secondary",
+          icon: "mdi-arrow-right",
+        }
+      },
     },
     created(){
       this.onPageLoad()
@@ -556,7 +554,7 @@
       this.onPageLoad()
     },
     template: `
-      <?!= include_('dashboard/view/workingcalendar.html'); ?>
+      <?!= include_('dashboard/view/workingcalendar/workingcalendar.html'); ?>
       `
   }
 
@@ -654,6 +652,99 @@
 
 
 
+  const WorkingCategory = {
+    data: () => ({
+      page: 1,
+      pageSize: -1,
+      search: '',
+      headers: [
+        {
+          text: "ID",
+          align: "start",
+          sortable: false,
+          value: "id",
+        },
+        {text: "Mã ca", value: "workingTimeType"},
+        {text: "Mô tả", value: "description"},
+        {text: "Ca bắt đầu (nguyên ngày)",value: "startShiftAllDay"},
+        {text: "Ca kết thúc (nguyên ngày)",value: "endShiftAllDay"},
+        {text: "Ngày làm việc (nguyên ngày)",value: "workingAllDay"},
+        {text: "Ca bắt đầu (optional)",value: "startShiftOptional"},
+        {text: "Ca kết thúc (optional)",value: "endShiftOptional"},
+        {text: "Ngày làm việc (optional)",value: "workingOptionalDay"},
+      ],
+      selectXlsx: null,
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+        workingTimeType: 'workingTimeType',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+      }),
+    },
+    methods: {
+      async onPageLoad(){
+          this.$store.dispatch("getItems", {
+          database: "employeeContractDatabase", 
+          sheetName: "workingTimeType", 
+          page: this.page, 
+          pageSize: this.pageSize
+          })
+      },
+      formatTime(dateTime) {
+        if (dateTime) {
+          const dateObj = new Date(dateTime);
+          return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+      },
+      uploadXlsx() {
+          if (!this.selectXlsx) {
+            console.log("Please upload a xlsx file")
+            return;
+          }
+          if (this.selectXlsx) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              /* Parse data */
+              const bstr = e.target.result;
+              const wb = XLSX.read(bstr, { type: "binary" });
+              /* Get first worksheet */
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              /* Convert array of arrays */
+              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+               
+              console.log(data);
+            };
+
+            reader.readAsBinaryString(this.selectXlsx);
+          }
+          this.selectXlsx = null;
+      },
+    },
+    watch:{
+      page: function(){
+        this.onPageLoad()
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+      <?!= include_('dashboard/view/workingcalendar/workingcategory.html'); ?>
+      `
+  }
+
+
+
+
+
   const routes = [
     { path: '/', component: Dashboard, meta: {icon: "mdi-view-dashboard", title: "Dashboard"} },
     { path: '/login', component: LoginView, meta: {icon: "mdi-login", title: "Login"}},
@@ -661,7 +752,8 @@
     { path: '/receivedleaves', component: ReceivedLeaves, meta: {title: "Đơn đã nhận"} },
     { path: '/users', component: Users, meta: {icon: "mdi-microsoft-teams", title: "Danh sách Team Users"} },
     { path: '/profile', component: UserProfile, meta: {icon: "mdi-account", title: "Hồ sơ nhân viên"} },
-    { path: '/workingcalendar', component: WorkingCalendar, meta: {icon: "mdi-calendar-account", title: "Lịch làm việc"} },
+    { path: '/workingcalendar', component: WorkingCalendar, meta: {title: "Lịch làm việc"} },
+    { path: '/workingcategory', component: WorkingCategory, meta: {title: "Danh mục ca làm việc"} },
     { path: '/resignhandover', component: ResignHandover, meta: {icon: "mdi-list-status", title: "Bàn giao nghỉ việc"} },
   
   ]

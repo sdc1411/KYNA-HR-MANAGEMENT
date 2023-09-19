@@ -118,13 +118,6 @@
         if (success) this.dialogResignFormOther.show = false
       },
       showResignForm(item){
-        const loginUser = this.$store.state.loginUser
-        this.form = Utils.copyObject(Forms.ResignForm, true)
-        this.form.fullName.items = loginUser.cv_name
-        this.form.userEmail.items = loginUser.employee_email
-        this.form.employeeCode.items = loginUser.Employee_code
-        this.form.department.items = loginUser.department
-        this.form.position.items = loginUser.position
         this.$refs.form && this.$refs.form.resetValidation()
         this.dialogResignForm = {
           show: true,
@@ -133,10 +126,15 @@
           color: "primary",
           icon: "mdi-plus",
         }
-      },
-      showResignFormOther(item){
         const loginUser = this.$store.state.loginUser
         this.form = Utils.copyObject(Forms.ResignForm, true)
+        this.form.fullName.items = loginUser.cv_name
+        this.form.userEmail.items = loginUser.employee_email
+        this.form.employeeCode.items = loginUser.Employee_code
+        this.form.department.items = loginUser.department
+        this.form.position.items = loginUser.position
+      },
+      showResignFormOther(item){
         this.$refs.form && this.$refs.form.resetValidation()
         this.dialogResignFormOther = {
           show: true,
@@ -145,6 +143,8 @@
           color: "primary",
           icon: "mdi-plus",
         }
+        const loginUser = this.$store.state.loginUser
+        this.form = Utils.copyObject(Forms.ResignForm, true)
       },
     },
     template: `

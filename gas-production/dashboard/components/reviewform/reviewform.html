@@ -56,11 +56,6 @@
         return `${day}/${month}/${year}`
       },
       showReviewForm(item){
-        const loginUser = this.$store.state.loginUser
-        this.reviewForm = Utils.copyObject(Forms.ReviewForm, true)
-        this.reviewForm.fullName.items = loginUser.cv_name
-        this.reviewForm.userEmail.items = loginUser.employee_email
-        this.reviewForm.applyEmployeeDepartment.items = this.$store.getters.listDepartments
         this.$refs.reviewForm && this.$refs.reviewForm.resetValidation()
         this.dialogReviewForm = {
           show: true,
@@ -69,6 +64,11 @@
           color: "primary",
           icon: "mdi-plus",
         }
+        const loginUser = this.$store.state.loginUser
+        this.reviewForm = Utils.copyObject(Forms.ReviewForm, true)
+        this.reviewForm.fullName.items = loginUser.cv_name
+        this.reviewForm.userEmail.items = loginUser.employee_email
+        this.reviewForm.applyEmployeeDepartment.items = this.$store.getters.listDepartments
       },
       async submitReviewForm(){
         if (!this.$refs.reviewForm.validate()) return

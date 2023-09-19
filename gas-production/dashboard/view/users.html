@@ -1,0 +1,52 @@
+<div>
+  <div class="d-flex align-center">
+    <v-spacer></v-spacer>
+    <v-form ref="search" @submit.prevent="onSearch">
+      <my-input :item="search"></my-input>
+    </v-form>
+  </div>
+  <v-data-table :headers="headers"
+    :items="userTeamFilter"
+    v-if="!search.value"
+    :sort-by="['department','Employee_code']"
+    :sort-desc="[true, false]"
+    multi-sort
+    :single-expand=false
+    item-key="Employee_code"
+    show-expand
+    class="elevation-1">
+    <template v-slot:item.onboard_date="{ item }">
+      {{ item.onboard_date ? formatDate(item.onboard_date) : item.onboard_date}}
+    </template>
+     <template v-slot:expanded-item="{ headers, item }">
+      <td :colspan="headers.length">
+        Loại hợp đồng hiện tại: {{ item.doc_type }}, có hiệu lực từ {{formatDate(item.docApplyFrom)}} đến {{ item.docApplyTo ? formatDate(item.docApplyTo) : 'vô thời hạn'}}
+      </td>
+    </template>
+  </v-data-table>
+  <v-data-table :headers="headers"
+    :items="usersTeamSearch.items" v-if="search.value"
+    :sort-by="['department','Employee_code']"
+    :sort-desc="[true, false]"
+    multi-sort
+     :single-expand=false
+    item-key="Employee_code"
+    show-expand
+    class="elevation-1">
+    <template v-slot:item.onboard_date="{ item }">
+      {{ item.onboard_date ? formatDate(item.onboard_date) : item.onboard_date}}
+    </template>
+    <template v-slot:expanded-item="{ headers, item }">
+      <td :colspan="headers.length">
+        Loại hợp đồng hiện tại: {{ item.doc_type }}, có hiệu lực từ {{formatDate(item.docApplyFrom)}} đến {{ item.docApplyTo ? formatDate(item.docApplyTo) : 'vô thời hạn'}}
+      </td>
+    </template>
+  </v-data-table>
+  <!-- <div class="caption text-end" v-if="!search.value">
+    * Chỉ {{ pageSize }} records được hiển thị, sử dụng Search để xem nhiều hơn 
+  </div> -->
+  <!-- <div class="text-center pt-3">
+    <v-pagination :disabled="loading" v-model="page" :length="users.pages"></v-pagination>
+  </div> -->
+
+</div>

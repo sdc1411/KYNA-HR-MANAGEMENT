@@ -148,6 +148,7 @@ class App {
     this.dbWorkingCalendar = SpreadsheetApp.openById(CONFIG.DATABASE.WORKING_CALENDAR)
     this.dbEmployeeInformation = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_INFORMATION)
     this.dbResigns = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS)
+    this.dbEmployeeContractManagement = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT)
     this.reverse = CONFIG.REVERSE
     this.headerId = 'id'
   }
@@ -255,7 +256,7 @@ class App {
 
   getItems({ page, pageSize, database ,sheetName, filters }) {
   
-    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : null
+    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement :  null
     const ws = ss.getSheetByName(sheetName)
     
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
@@ -282,7 +283,7 @@ class App {
   }
 
   createItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -302,7 +303,7 @@ class App {
   }
 
   updateItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -326,7 +327,7 @@ class App {
   }
 
   updateFindItem(findItem, item) {
-    // if (item.assignedToEmails === findItem.requestedBy) throw new Error("You can't assign the request to the requestor.")
+    if (item.assignedToEmails === findItem.requestedBy) throw new Error("You can't assign the request to the requestor.")
     const data = JSON.parse(findItem.dataApprovals)
     const index = data.findIndex(v => v.email === findItem.pendingOn)
     if (item.type === "Approve") {
@@ -346,13 +347,13 @@ class App {
       data[index].timestamp = new Date()
       item.status = CONFIG.STATUS.REJECTED
       item.pendingOn = null
-      // item.assignedToEmails = findItem.assignedToEmails
+      item.assignedToEmails = findItem.assignedToEmails
     } 
-    // else if (item.type === "Forward") {
-    //   data[index].email = item.assignedToEmails
-    //   item.pendingOn = item.assignedToEmails
-    //   item.assignedToEmails = findItem.assignedToEmails.replace(findItem.pendingOn, item.assignedToEmails)
-    // }
+    else if (item.type === "Forward") {
+      data[index].email = item.assignedToEmails
+      item.pendingOn = item.assignedToEmails
+      item.assignedToEmails = findItem.assignedToEmails.replace(findItem.pendingOn, item.assignedToEmails)
+    }
     item.dataApprovals = JSON.stringify(data)
     
   }

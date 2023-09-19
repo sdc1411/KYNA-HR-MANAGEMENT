@@ -23,11 +23,6 @@
         return `${day}/${month}/${year}`;
       },
       showUpdateProfileForm(item){
-        const loginUser = this.$store.state.loginUser
-        this.updateProfileForm = Utils.copyObject(Forms.UpdateProfileForm, true)
-        this.updateProfileForm.employeeName.items = loginUser.cv_name
-        this.updateProfileForm.employeeCode.items = loginUser.Employee_code
-        this.updateProfileForm.position.items = loginUser.position
         this.$refs.updateProfileForm && this.$refs.updateProfileForm.resetValidation()
         this.dialogUpdateProfile = {
           show: true,
@@ -36,6 +31,11 @@
           color: "primary",
           icon: "mdi-plus",
         }
+        const loginUser = this.$store.state.loginUser
+        this.updateProfileForm = Utils.copyObject(Forms.UpdateProfileForm, true)
+        this.updateProfileForm.employeeName.items = loginUser.cv_name
+        this.updateProfileForm.employeeCode.items = loginUser.Employee_code
+        this.updateProfileForm.position.items = loginUser.position
       },
       async submitUpdateProfileForm(){
         if (!this.$refs.updateProfileForm.validate()) return

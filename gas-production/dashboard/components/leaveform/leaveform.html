@@ -3,6 +3,7 @@
     data: ()=>({
       leaveForm: Utils.copyObject(Forms.LeaveForm, true),
       dialogLeaveForm: {},
+      dialogLeaveFormOther: {},
       leaveDayRanges: [{
         startShift:'',
         startDate:'',
@@ -11,6 +12,11 @@
       }],
       workingShifts: ["Sáng","Chiều","Ca A(Đầu)","Ca A(Cuối)","Ca B(Đầu)","Ca B(Cuối)","Ca C(Đầu)","Ca C(Cuối)","Ca D(Đầu)","Ca D(Cuối)"],
       rules: {required: [v => !!v || "This is a required filed"],},
+      tooltipShifts: 'Sáng/Chiều: Áp dụng cho Team theo giờ làm việc 8h30-17h30 | CaA: Áp dụng cho Ops ca từ 8h30 - 17h30 | CaB: Áp dụng cho Ops ca từ 14h-22h | CaC: áp dụng cho Ops ca từ 8h30-12h và 18h-22h | CaD: áp dụng cho Ops ca từ 8h30-10h30 và 16h-22h',
+      tooltipAssignToEmails: 'Lưu ý: Chỉ tag email người có thẩm quyền duyệt đơn của mình, không tag email của team HR. Nếu loại đơn cần từ 2 người duyệt trở lên thì tag đủ email của những người cần duyệt',
+      selectedDepartment: null,
+      selectedEmployeeCode: null,
+      selectedName: null,
       menuDate: [{
         menuDate1: false,
         menuDate2: false,
@@ -26,8 +32,38 @@
       ...Vuex.mapGetters({
         listLeaveTypes: 'listLeaveTypes',
         assignedToEmails: 'assignedToEmails',
+        userTeamFilter: 'userTeamFilter',
         listDepartments: 'listDepartments',
+        listEmployeeName: 'listEmployeeName',
+        listEmployeeCode: 'listEmployeeCode',
       }),
+      departmentFilter() {
+        if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.department)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.department)
+        } else {
+          return this.listDepartments
+        }
+      },
+      nameFilter() {
+        if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.cv_name)
+        } else if (this.selectedEmployeeCode) {
+          return this.userTeamFilter.filter(item => item.Employee_code === this.selectedEmployeeCode).map(item => item.cv_name)
+        } else {
+          return this.listEmployeeName
+        }
+      },
+      employeeCodeFilter() {
+        if (this.selectedDepartment) {
+          return this.userTeamFilter.filter(item => item.department === this.selectedDepartment).map(item => item.Employee_code)
+        } else if (this.selectedName) {
+          return this.userTeamFilter.filter(item => item.cv_name === this.selectedName).map(item => item.Employee_code)
+        } else {
+          return this.listEmployeeCode
+        }
+      },
      
     },
     methods: {
@@ -46,6 +82,16 @@
         return (value.length === 0) ? '' : result
       },
       showLeaveForm(item){
+        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation()
+        this.dialogLeaveForm = {
+          show: true,
+          leaveFormType: "self",
+          type: "Create",
+          title: "Đơn xin nghỉ phép, làm việc tại nhà",
+          color: "primary",
+          icon: "mdi-plus",
+          width: "800"
+        }
         const loginUser = this.$store.state.loginUser
         this.leaveForm = Utils.copyObject(Forms.LeaveForm, true)
         this.leaveForm.employeeName.items = loginUser.cv_name
@@ -53,15 +99,21 @@
         this.leaveForm.department.items = loginUser.department
         this.leaveForm.leaveTypes.items = this.listLeaveTypes
         this.leaveForm.assignedToEmails.items = this.assignedToEmails
+      },
+      showLeaveFormOther(item){
         this.$refs.leaveForm && this.$refs.leaveForm.resetValidation()
-        this.dialogLeaveForm = {
+        this.dialogLeaveFormOther = {
           show: true,
+          leaveFormType: "other",
           type: "Create",
           title: "Đơn xin nghỉ phép, làm việc tại nhà",
           color: "primary",
           icon: "mdi-plus",
           width: "800"
         }
+        this.leaveForm = Utils.copyObject(Forms.LeaveForm, true)
+        this.leaveForm.leaveTypes.items = this.listLeaveTypes
+        this.leaveForm.assignedToEmails.items = this.assignedToEmails
       },
       async submitLeaveForm(){
         if (!this.$refs.leaveForm.validate()) return
@@ -75,10 +127,19 @@
         item.dataLeaveDays = JSON.stringify(this.leaveDayRanges)
         item.pendingOn = item.assignedToEmails[0]
         item.assignedToEmails = JSON.stringify(item.assignedToEmails)
-        const success = await this.$store.dispatch("createItem", { database: "leaveDaysDatabase", sheetName: "leaveRequests", item})
-        // console.log(item)
-        if (success) this.dialogLeaveForm.show = false
-        await this.onPageLoad()
+        const leaveFormType = (this.dialogLeaveForm) ? this.dialogLeaveForm.leaveFormType : this.dialogLeaveFormOther.leaveFormType
+
+        if (leaveFormType === "self") {  
+          const success = await this.$store.dispatch("createItem", { database: "leaveDaysDatabase", sheetName: "leaveRequests", item})
+          if (success) this.dialogLeaveForm.show = false
+        } else {
+          item.employeeCode = this.selectedEmployeeCode
+          item.employeeName = this.selectedName
+          item.department = this.selectedDepartment
+          const success = await this.$store.dispatch("createItem", { database: "leaveDaysDatabase", sheetName: "leaveRequests", item})
+          if (success) this.dialogLeaveFormOther.show = false
+        }
+
       },
       addMoreLeaveDay() {
         this.leaveDayRanges.push({

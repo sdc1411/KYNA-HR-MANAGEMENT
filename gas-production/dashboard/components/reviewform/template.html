@@ -4,7 +4,7 @@
       <v-icon left>mdi-plus</v-icon>
       Đề xuất thay đổi lương, chức vụ
     </v-btn>
-    <v-dialog v-model="dialogReviewForm.show" :width="dialogReviewForm.width || 700">
+    <v-dialog v-model="dialogReviewForm.show" :width="dialogReviewForm.width || 700" persistent>
       <v-form ref="reviewForm" @click.prevent="submitReviewForm">
         <v-card>
           <v-card-title class="text-h5 white--text" v-html="dialogReviewForm.title" :class=" dialogReviewForm.color || 'primary' ">
@@ -24,7 +24,8 @@
                       :items="employeeCodeFilter"
                       :rules="reviewForm.applyEmployeeCode.rules" 
                       :prepend-icon="reviewForm.applyEmployeeCode.icon"
-                      :label="reviewForm.applyEmployeeCode.label">
+                      :label="reviewForm.applyEmployeeCode.label"
+                      small-chips>
                     </v-autocomplete>
               </v-col>
               <v-col
@@ -36,7 +37,8 @@
                       :items="nameFilter"
                       :rules="reviewForm.applyEmployeeName.rules" 
                       :prepend-icon="reviewForm.applyEmployeeName.icon"
-                      :label="reviewForm.applyEmployeeName.label">
+                      :label="reviewForm.applyEmployeeName.label"
+                      small-chips>
                     </v-autocomplete>
               </v-col>
             </v-row>
@@ -45,7 +47,8 @@
               :items="departmentFilter"
               :rules="reviewForm.applyEmployeeDepartment.rules" 
               :prepend-icon="reviewForm.applyEmployeeDepartment.icon"
-              label="Chọn phòng ban">
+              label="Chọn phòng ban"
+              small-chips>
             </v-autocomplete>
             <v-spacer></v-spacer>
             <br>
