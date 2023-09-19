@@ -1,0 +1,110 @@
+<template>
+  <div>
+    <v-btn class="btn ma-2" color="primary" elevation="2" depressed small @click="showReviewForm" :disabled="loading" rounded v-if="loginUser.level=='Manager' || loginUser.level=='C-level' || loginUser.level=='Director'">
+      <v-icon left>mdi-plus</v-icon>
+      Đề xuất thay đổi lương, chức vụ
+    </v-btn>
+    <v-dialog v-model="dialogReviewForm.show" :width="dialogReviewForm.width || 700" persistent>
+      <v-form ref="reviewForm" @click.prevent="submitReviewForm">
+        <v-card>
+          <v-card-title class="text-h5 white--text" v-html="dialogReviewForm.title" :class=" dialogReviewForm.color || 'primary' ">
+          </v-card-title>
+          <v-card-text class="mt-6 pb-0">
+            <my-input :item="reviewForm.userEmail"></my-input>
+            <my-input :item="reviewForm.fullName"></my-input>
+            <v-spacer></v-spacer>
+            <br>
+            <v-row>
+              <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1 ma-0">
+                    <v-autocomplete
+                      v-model="selectedEmployeeCode"
+                      :items="employeeCodeFilter"
+                      :rules="reviewForm.applyEmployeeCode.rules" 
+                      :prepend-icon="reviewForm.applyEmployeeCode.icon"
+                      :label="reviewForm.applyEmployeeCode.label"
+                      small-chips>
+                    </v-autocomplete>
+              </v-col>
+              <v-col
+                  cols="12"
+                  sm="8"
+                  class="pa-1 ma-0">
+                    <v-autocomplete
+                      v-model="selectedName"
+                      :items="nameFilter"
+                      :rules="reviewForm.applyEmployeeName.rules" 
+                      :prepend-icon="reviewForm.applyEmployeeName.icon"
+                      :label="reviewForm.applyEmployeeName.label"
+                      small-chips>
+                    </v-autocomplete>
+              </v-col>
+            </v-row>
+            <v-autocomplete
+              v-model="selectedDepartment"
+              :items="departmentFilter"
+              :rules="reviewForm.applyEmployeeDepartment.rules" 
+              :prepend-icon="reviewForm.applyEmployeeDepartment.icon"
+              label="Chọn phòng ban"
+              small-chips>
+            </v-autocomplete>
+            <v-spacer></v-spacer>
+            <br>
+            <v-row>
+              <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1 ma-0">
+                    <my-input :item="reviewForm.newContractType"></my-input>
+              </v-col>
+              <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1 ma-0">
+                    <my-input :item="reviewForm.newPosition"></my-input>
+              </v-col>
+              <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1 ma-0">
+                    <my-input :item="reviewForm.newLevel"></my-input>
+              </v-col>
+            </v-row>
+            
+            <v-row>
+              <v-col
+                  cols="12"
+                  sm="8"
+                  class="pa-1 ma-0">
+                    <my-input :item="reviewForm.newGrossSalary"></my-input>
+              </v-col>
+              <v-col
+                  cols="12"
+                  sm="4"
+                  class="pa-1 ma-0">
+                    <my-input :item="reviewForm.salaryUnit"></my-input>
+              </v-col>
+            </v-row>
+            <my-input :item="reviewForm.newOther"></my-input>
+            <my-input :item="reviewForm.requestReason"></my-input>
+            <date-picker :item="reviewForm.newApplyDate"></date-picker>
+
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="submitReviewForm" text :color="dialogReviewForm.color || 'primary' " :disabled="loading">
+              <v-icon left>{{ dialogReviewForm.icon }}</v-icon>
+              {{ dialogReviewForm.type }}
+            </v-btn>
+            <v-btn color=" grey " text @click="dialogReviewForm.show = false" :disabled="loading">
+              <v-icon left>mdi-cancel</v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+  </div>
+</template>

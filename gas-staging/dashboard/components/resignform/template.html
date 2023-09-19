@@ -1,0 +1,181 @@
+
+<template>
+  <div>
+     <v-menu
+        bottom
+        offset-y
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn
+            class="btn ma-2" color="primary" elevation="2" depressed small :disabled="loading" rounded
+            v-bind="attrs"
+            v-on="on"
+          >
+          <v-icon left>mdi-plus</v-icon>
+            Đơn xin thôi việc
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            @click="showResignForm"
+          >
+            <v-list-item-title>Tạo đơn cho bản thân</v-list-item-title>
+          </v-list-item>
+          <v-list-item
+            @click="showResignFormOther"
+          >
+            <v-list-item-title>Tạo đơn cho nhân viên khác</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+
+    <v-dialog v-model="dialogResignFormOther.show" :width="dialogResignFormOther.width || 600" persistent>
+      <v-form ref="form" @click.prevent="submitResignFormOther">
+        <v-card>
+          <v-card-title class="text-h5 white--text" v-html="dialogResignFormOther.title" :class="dialogResignFormOther.color || 'primary' ">
+          </v-card-title>
+          <v-card-text class="mt-6 pb-0">
+            <v-row align="center">
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="4">
+                  <v-autocomplete
+                    v-model="selectedEmployeeCode"
+                    :items="employeeCodeFilter"
+                    :rules="form.employeeCode.rules" 
+                    :prepend-icon="form.employeeCode.icon"
+                    :label="form.employeeCode.label"
+                    small-chips>
+                  </v-autocomplete>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="8">
+                  <v-autocomplete
+                    v-model="selectedName"
+                    :items="nameFilter"
+                    :rules="form.fullName.rules" 
+                    :prepend-icon="form.fullName.icon"
+                    :label="form.fullName.label"
+                    small-chips>
+                  </v-autocomplete>
+
+                </v-col>
+            </v-row>
+              <v-autocomplete
+                v-model="selectedEmail"
+                :items="emailFilter"
+                :rules="form.userEmail.rules" 
+                :prepend-icon="form.userEmail.icon"
+                :label="form.userEmail.label"
+                small-chips>
+              </v-autocomplete>
+
+            <v-row align="center">
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="6">
+                  <v-autocomplete
+                    v-model="form.position.value"
+                    :items="positionFilter"
+                    :rules="form.position.rules" 
+                    :prepend-icon="form.position.icon"
+                    :label="form.position.label"
+                    small-chips>
+                  </v-autocomplete>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="6">
+                  <v-autocomplete
+                    v-model="selectedDepartment"
+                    :items="departmentFilter"
+                    :rules="form.department.rules" 
+                    :prepend-icon="form.department.icon"
+                    label="Chọn phòng ban"
+                    small-chips>
+                  </v-autocomplete>
+                </v-col>
+            </v-row>
+          
+            <my-input :item="form.offReason"></my-input>
+            <date-picker :item="form.lastWorkingDay"></date-picker>
+
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="submitResignFormOther" text :color="dialogResignFormOther.color || 'primary' " :disabled="loading">
+              <v-icon left>{{ dialogResignFormOther.icon }}</v-icon>
+              {{ dialogResignFormOther.type }}
+            </v-btn>
+            <v-btn color=" grey " text @click="dialogResignFormOther.show = false" :disabled="loading">
+              <v-icon left>mdi-cancel</v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+
+    <v-dialog v-model="dialogResignForm.show" :width="dialogResignForm.width || 600" persistent>
+      <v-form ref="form" @click.prevent="submitResignForm">
+        <v-card>
+          <v-card-title class="text-h5 white--text" v-html="dialogResignForm.title" :class="dialogResignForm.color || 'primary' ">
+          </v-card-title>
+          <v-card-text class="mt-6 pb-0">
+            <v-row align="center">
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="4">
+                  <my-input :item="form.employeeCode"></my-input>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="8">
+                  <my-input :item="form.fullName"></my-input>
+                </v-col>
+            </v-row>
+              <my-input :item="form.userEmail"></my-input>
+
+            <v-row align="center">
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="6">
+                  <my-input :item="form.position"></my-input>
+                </v-col>
+                <v-col
+                  cols="12"
+                  class="mt-2"
+                  sm="6">
+                  <my-input :item="form.department"></my-input>
+                </v-col>
+            </v-row>
+          
+            <my-input :item="form.offReason"></my-input>
+            <date-picker :item="form.lastWorkingDay"></date-picker>
+
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="submitResignForm" text :color="dialogResignForm.color || 'primary' " :disabled="loading">
+              <v-icon left>{{ dialogResignForm.icon }}</v-icon>
+              {{ dialogResignForm.type }}
+            </v-btn>
+            <v-btn color=" grey " text @click="dialogResignForm.show = false" :disabled="loading">
+              <v-icon left>mdi-cancel</v-icon>
+              Cancel
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-form>
+    </v-dialog>
+
+  </div>
+</template>

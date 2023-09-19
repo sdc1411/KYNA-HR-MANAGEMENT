@@ -1,0 +1,48 @@
+<div>
+  <v-data-table :headers="headers" :items="items" :items-per-page="pageSize" text-h6>
+    <template v-slot:item.createdAt="{ item }" class="text-body-2">
+      {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : item.createdAt}}
+    </template>
+    <template v-slot:item.status="{ item }" class="text-body-2">
+      <v-chip :color="statusColor[item.status]" label>{{ item.status }}</v-chip>
+    </template>
+
+    <template v-slot:item.dataApprovals="{ item }">
+      <v-expansion-panels accordion flat>
+        <v-expansion-panel>
+          <v-expansion-panel-header class="text-caption">Chi tiết phê duyệt</v-expansion-panel-header>
+          <v-expansion-panel-content>
+            <v-timeline align-top>
+              <v-timeline-item v-for="(subitem, index) in JSON.parse(item.dataApprovals)" :key="index"
+                :color="statusColor[subitem.status]" small>
+                <v-row class="pt-1">
+                  <v-col cols="3" class="text-caption">
+                    <strong>{{subitem.status}}</strong>
+                  </v-col>
+                  <v-col>
+                    <div class="text-caption">{{subitem.email}}<div>
+                    <div class="text-caption">
+                      {{subitem.comments}}
+                    </div>
+                    <div class="text-caption">
+                      {{subitem.timestamp ? new Date(subitem.timestamp).toLocaleString(): subitem.timestamp}}
+                    </div>
+                  </v-col>
+                </v-row>
+              </v-timeline-item>
+            </v-timeline>
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </template>
+    <template v-slot:item.dataLeaveDays="{ item }">
+      <v-row class="pt-1 text-body-2" v-for="(subitem, index) in JSON.parse(item.dataLeaveDays)" :key="index" small>
+        <v-col>
+          <div class="text-caption">
+            Từ {{subitem.startShift}} {{formatDate(subitem.startDate)}} đến {{subitem.endShift}} {{formatDate(subitem.endDate)}}
+          </div>
+        </v-col>
+      </v-row>
+    </template>
+  </v-data-table>
+</div>

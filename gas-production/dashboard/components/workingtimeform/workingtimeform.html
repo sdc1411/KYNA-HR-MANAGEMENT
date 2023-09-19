@@ -1,0 +1,47 @@
+<script>
+  const WorkingTimeFormComponent = Vue.component('working-time-form',{
+    data: ()=>({
+      workingTimeForm: Utils.copyObject(Forms.WorkingTimeForm, true),
+      dialog: {},
+      workingDay: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+    },
+    methods: {
+      showWorkingTimeForm(item){
+        this.$refs.workingTimeForm && this.$refs.workingTimeForm.resetValidation()
+        this.dialog = {
+          show: true,
+          type: "Create",
+          title: "Tạo ca làm việc mới",
+          color: "primary",
+          icon: "mdi-plus",
+          width: "800"
+        }
+        this.workingTimeForm = Utils.copyObject(Forms.WorkingTimeForm, true)
+        this.workingTimeForm.workingAllDay.items = this.workingDay
+        this.workingTimeForm.workingOptionalDay.items = this.workingDay
+      },
+      async submitWorkingTimeForm(){
+        if (!this.$refs.workingTimeForm.validate()) return
+        const item = Utils.getFormValues(this.workingTimeForm)
+        item.workingAllDay = item.workingAllDay.join(',')
+        item.workingOptionalDay = item.workingOptionalDay.join(',')
+
+        console.log(item)
+        
+        const success = await this.$store.dispatch("createItem", { database: "employeeContractDatabase", sheetName: "workingTimeType", item})
+        if (success) this.dialog.show = false
+        }
+
+      },
+    template: `
+    <?!= include_('dashboard/components/workingtimeform/template.html'); ?>
+    `
+  })
+</script>

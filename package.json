@@ -1,0 +1,15 @@
+{
+  "name": "kyna-hr-dashboard---vue-2",
+  "version": "1.0.0",
+  "description": "kyna-hr-dashboard-vue-2",
+  "scripts": {
+    "devtotest": "cross-env NODE_ENV=development sh pushdevsta.sh",
+    "testtopro": "cross-env NODE_ENV=development sh pushstapro.sh",
+    "protodev": "cross-env NODE_ENV=development sh pushprodev.sh"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  }
+}

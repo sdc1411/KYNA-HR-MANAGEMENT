@@ -1,0 +1,54 @@
+<script>
+  const UpdateProfileFormComponent = Vue.component('update-profile-form',{
+    data: ()=>({
+      updateProfileForm: Utils.copyObject(Forms.UpdateProfileForm, true),
+      dialogUpdateProfile: {},
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
+      showUpdateProfileForm(item){
+        this.$refs.updateProfileForm && this.$refs.updateProfileForm.resetValidation()
+        this.dialogUpdateProfile = {
+          show: true,
+          type: "Create",
+          title: "Yêu cầu cập nhật thông tin hồ sơ",
+          color: "primary",
+          icon: "mdi-plus",
+        }
+        const loginUser = this.$store.state.loginUser
+        this.updateProfileForm = Utils.copyObject(Forms.UpdateProfileForm, true)
+        this.updateProfileForm.employeeName.items = loginUser.cv_name
+        this.updateProfileForm.employeeCode.items = loginUser.Employee_code
+        this.updateProfileForm.position.items = loginUser.position
+      },
+      async submitUpdateProfileForm(){
+        if (!this.$refs.updateProfileForm.validate()) return
+        const item = Utils.getFormValues(this.updateProfileForm)
+        item.createdAt = new Date()
+        item.idStatus = 'Waiting Approve'
+        // console.log(item)
+        const success = await this.$store.dispatch("createItem", { database: "employeeInformationDatabase", sheetName: "updateProfileRequests", item})
+        if (success) this.dialogUpdateProfile.show = false
+      },
+    },
+    template: `
+    <?!= include_('dashboard/components/updateprofileform/template.html'); ?>
+    `
+  })
+</script>

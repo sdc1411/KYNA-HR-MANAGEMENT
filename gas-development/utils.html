@@ -1,0 +1,137 @@
+<script>
+  const Utils = {
+  }
+
+  Utils.getFormValues = (formData) => {
+    const values = {}
+    Object.entries(formData).forEach(([key, item]) => values[key] = item.value)
+    return values
+  }
+
+  Utils.updateFormValues = (formData, item, disableAll=false) => {
+    Object.keys(formData).forEach(key => {
+      if (disableAll) formData[key].disabled = true
+      if (item.hasOwnProperty(key)) {
+        try{
+          formData[key].value = JSON.parse(item[key])
+        }catch(err){
+          formData[key].value = item[key]
+        }
+      }
+    })
+  }
+
+  Utils.copyObject = (obj, hasRules=false) => {
+    const item = JSON.parse(JSON.stringify(obj))
+    if (!hasRules) return item
+    Object.entries(obj).forEach(([key, value]) => item[key]["rules"] = value["rules"])
+    return item
+  }
+
+  Utils.request = async (functionName, params = {}) => {
+    params = JSON.stringify(params)
+    return new Promise((resolve, reject) => {
+      google.script.run
+        .withSuccessHandler((response) => resolve(JSON.parse(response)))
+        .withFailureHandler((err) => reject(err))
+        [functionName](params)
+    })
+  }
+
+  Utils.getLocation = async function(){
+    return new Promise((resolve, reject) => {
+      google.script.url.getLocation(location => resolve(location))
+    })
+  }
+
+  // Utils.getStorageItem = (key) => {
+  //   try{
+  //     return localStorage.getItem(key)
+  //   }catch(err){
+  //     return null
+  //   }
+  // }
+
+  // Utils.setStorageItem = (key, value) => {
+  //   try{
+  //     localStorage.setItem(key, value)
+  //   }catch(err){
+  //     // pass
+  //     console.log(err)
+  //   }
+  // }
+
+
+  var ScriptService = function($q) {
+    var self = this; 
+    var promisify = function(key) {
+      return function() {      
+        var args = arguments;
+        return $q(function(resolve, reject) {
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)
+            [key].apply(google.script.run, args);
+        });
+      };
+    };
+    angular.forEach(google.script.run, function(_, key) {
+      self[key] = promisify(key)
+    });
+  };
+
+  var SampleController = function($scope, $window, script, intercom) {
+    var self = this;
+    
+    // Hold onto some dependencies.
+    self.$window = $window;
+    self.script = script;
+    
+    // Initialize state.
+    self.email = $window.email;
+    self.isSignedIn = $window.isSignedIn;
+    self.user = null;
+    
+    
+    // Listen for the event that indicates that the OAuth flow has completed.
+    intercom.on('oauthComplete', function(data) {
+      // Make sure the event is for the same Google account.
+      if (data.email === self.email) {
+        $scope.$apply(function() {
+          self.isSignedIn = data.isSignedIn;
+        });
+      }
+    });
+  };
+
+    // Handler for the sign in button.
+  SampleController.prototype.signIn = function() {
+    var self = this;
+    self.script.getAuthorizationUrl().then(function(authorizationUrl) {
+      self.$window.open(authorizationUrl);
+    }, self.handleError);
+  };
+    
+  // Handler for the sign out button.
+  SampleController.prototype.signOut = function() {
+    var self = this;
+    self.script.signOut().then(function() {
+      self.isSignedIn = false;
+    }, self.handleError);
+  };
+
+  // A generic handler for script errors.
+  SampleController.prototype.handleError = function(error) {
+    var self = this;
+    self.$window.alert(error);
+  };
+
+  var module = angular.module('sampleApp', [])
+    .service('script', ScriptService)
+    .service('intercom', function() {
+      return Intercom.getInstance();
+    })
+    .controller('SampleController', SampleController);
+
+</script>
+

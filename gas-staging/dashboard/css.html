@@ -1,0 +1,82 @@
+<style>
+
+  [v-cloak] {
+    display: block;
+    padding: 50px 0;
+  }
+
+  @keyframes spinner {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  [v-cloak]:before {
+    content: "";
+    box-sizing: border-box;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 50px;
+    height: 50px;
+    margin-top: -25px;
+    margin-left: -25px;
+    border-radius: 50%;
+    border: 5px solid #ccc;
+    border-top-color: #448AFF;
+    animation: spinner 0.8s linear infinite;
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  [v-cloak]>* {
+    display: none;
+  }
+  
+body {
+  /* background-image: url('https://res.cloudinary.com/dpwmd0kym/image/upload/v1692158772/Kyna%20Project/background/yppmjw4sawzpampzicep.png'); */
+  /* font-family: 'Poppins', sans-serif !important; */
+}
+
+.background01 {
+  background-size: cover !important;
+  background-image: linear-gradient(to right top, #333333, #2f2e2f, #2b292a, #272425, #241f1f);
+}
+
+.background02 {
+  background-size: cover !important;
+  background-image: url('https://res.cloudinary.com/dpwmd0kym/image/upload/v1692174337/Kyna%20Project/background/inqnpnnoleqw794xrlo4.png') no-repeat right top;
+  /* font-family: 'Poppins', sans-serif !important; */
+}
+
+.btn01 {
+  background-image: linear-gradient(to right top, #0b00ff, #0b00ff, #7156ff, #a590ff, #d2c7ff);
+  /* font-family: 'Poppins', sans-serif !important; */
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #fff !important;
+}
+
+.btn02 {
+  background-image: linear-gradient(to right, #994efa, #a04cf8, #a64bf6, #ac49f3, #b247f1, #b747ee, #bc46eb, #c146e8, #c747e3, #cc48df, #d14ada, #d54cd6);
+  /* font-family: 'Poppins', sans-serif !important; */
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #fff !important;
+}
+
+.btn {
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+.logo {
+  background-size: cover;
+  background-image: url('https://res.cloudinary.com/dpwmd0kym/image/upload/v1692156912/Kyna%20Project/logo/eva3ne6uo0mpynnguq8q.png');
+}
+
+</style>
