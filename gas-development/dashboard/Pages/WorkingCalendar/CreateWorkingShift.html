@@ -1,0 +1,90 @@
+<script>
+  const CreateWorkingShift = {
+    data: () => ({
+      page: 1,
+      pageSize: -1,
+      search: '',
+      headers: [
+        {
+          text: "ID",
+          align: "start",
+          sortable: false,
+          value: "id",
+        },
+        {text: "Mã ca", value: "workingTimeType"},
+        {text: "Mô tả", value: "description"},
+        {text: "Ca bắt đầu (nguyên ngày)",value: "startShiftAllDay"},
+        {text: "Ca kết thúc (nguyên ngày)",value: "endShiftAllDay"},
+        {text: "Ngày làm việc (nguyên ngày)",value: "workingAllDay"},
+        {text: "Ca bắt đầu (optional)",value: "startShiftOptional"},
+        {text: "Ca kết thúc (optional)",value: "endShiftOptional"},
+        {text: "Ngày làm việc (optional)",value: "workingOptionalDay"},
+      ],
+      workingTimeForm: Utils.copyObject(Forms.WorkingTimeForm, true),
+      dialog: {},
+      workingDay: ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+        workingTimeType: 'workingTimeType',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+      }),
+    },
+    methods: {
+      showWorkingTimeForm(item){
+        this.$refs.workingTimeForm && this.$refs.workingTimeForm.resetValidation()
+        this.dialog = {
+          show: true,
+          type: "Create",
+          title: "Tạo ca làm việc mới",
+          color: "primary",
+          icon: "mdi-plus",
+          width: "800"
+        }
+        this.workingTimeForm = Utils.copyObject(Forms.WorkingTimeForm, true)
+        this.workingTimeForm.workingAllDay.items = this.workingDay
+        this.workingTimeForm.workingOptionalDay.items = this.workingDay
+      },
+      async submitWorkingTimeForm(){
+        if (!this.$refs.workingTimeForm.validate()) return
+        const item = Utils.getFormValues(this.workingTimeForm)
+        item.workingAllDay = item.workingAllDay.join(',')
+        item.workingOptionalDay = item.workingOptionalDay.join(',')
+        const success = await this.$store.dispatch("createItem", { database: "employeeContractDatabase", sheetName: "workingTimeType", item})
+        if (success) this.dialog.show = false
+      },
+      async onPageLoad(){
+          this.$store.dispatch("getItems", {
+          database: "employeeContractDatabase", 
+          sheetName: "workingTimeType", 
+          page: this.page, 
+          pageSize: this.pageSize
+          })
+      },
+      formatTime(dateTime) {
+        if (dateTime) {
+          const dateObj = new Date(dateTime);
+          return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+      },
+    },
+    watch:{
+      page: function(){
+        this.onPageLoad()
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+      <?!= include_('dashboard/Pages/WorkingCalendar/CreateWorkingShift_template.html'); ?>
+      `
+  }
+</script>

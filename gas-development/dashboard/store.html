@@ -50,6 +50,7 @@
       leaveTracking: {items: [], pages: 1},
       resignEmployeeHandover: {items: [], pages: 1},
       workingTimeType: {items: [], pages: 1},
+      workingCalendarRequests: {items: [], pages: 1},
     },
     getters: {
       isKynaEmail: function(state){
@@ -69,7 +70,7 @@
         return (state.loginUser.employee_email == "long.duong@kynaforkids.vn" || state.loginUser.level == "C-level" || state.loginUser.level == "Director" || state.loginUser.level == "Manager") ? true : false
       },
       assignedToEmails: function(state){
-        return (state.loginUser.system_role == 'Manager' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') 
+        return (state.loginUser.level == 'Manager' || state.loginUser.level == 'Director' || state.loginUser.level == 'C-level' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') 
         ? state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.employee_email) 
         : state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.employee_email)
       },
@@ -104,7 +105,6 @@
         return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email && item.status === 'Pending').length
       },
       workingCalendarFilter: function(state){
-       
         const workingCalendar = state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
         const leaveTracking = state.leaveTracking.items.filter(item => item.employeeCode == state.loginUser.Employee_code)
         leaveTracking.forEach((item) => {
@@ -148,7 +148,9 @@
       },
 
     actions: {
-
+      async showSnackbar({commit}, error) {
+        commit("showSnackbar", {color: "error", message: error})
+      },
       async getDataLoginUser({commit}, params){
         commit("startLoading")
         try {
@@ -158,8 +160,8 @@
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})
-            if (path !== "/login")  {
-              router.push("/login")
+            if (path !== "/Login")  {
+              router.push("/Login")
             }
             return
           }
@@ -278,6 +280,55 @@
         }
       },
 
+      async handleWorkingCalendar({commit}, params){
+        commit("startLoading")
+        if (params.type === 'Create') {
+            try {
+            const {success, message} = await Utils.request("createWorkingCalendar", params)
+            if (!success){
+              commit("showSnackbar", {color: "error", message})
+            }else{
+              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+              commit("updateState", {key: "workingCalendarRequests", value: data})
+              commit("showSnackbar", {color: "success", message})
+              return true
+            }
+          }catch(err){
+            commit("showSnackbar", {color: "error", message: err.message})
+          }
+        } else if (params.type === 'Update') {
+          try {
+            const {success, message} = await Utils.request("updateWorkingCalendar", params)
+            if (!success){
+              commit("showSnackbar", {color: "error", message})
+            }else{
+              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+              commit("updateState", {key: "workingCalendarRequests", value: data})
+              commit("showSnackbar", {color: "success", message})
+              return true
+            }
+          }catch(err){
+            commit("showSnackbar", {color: "error", message: err.message})
+          }
+        } else if (params.type === 'Delete') {
+          try {
+            const {success, message} = await Utils.request("deleteWorkingCalendar", params)
+            if (!success){
+              commit("showSnackbar", {color: "error", message})
+            }else{
+              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+              commit("updateState", {key: "workingCalendarRequests", value: data})
+              commit("showSnackbar", {color: "success", message})
+              return true
+            }
+          }catch(err){
+            commit("showSnackbar", {color: "error", message: err.message})
+          }
+        } else {
+          return commit("showSnackbar", {color: "error", message: 'Type chưa được định nghĩa'})
+        }
+      },
+
       async login({commit}, params){
         commit("startLoading")
         try {
@@ -289,15 +340,15 @@
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})
-            if (path !== "/login")  {
-              router.push("/login")
+            if (path !== "/Login")  {
+              router.push("/Login")
             }
             return
           }
           commit("updateState", {key: "statusLogin", value: success})
           commit("updateState", {key: "loginUser", value: loginUser})
           // commit("updateState", {key: "app", value: appInfo})
-          if (path !== "/login") {
+          if (path !== "/Login") {
             router.push(path)
            } else{
              router.push("/")

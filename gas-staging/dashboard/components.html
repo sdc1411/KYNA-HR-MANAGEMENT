@@ -105,7 +105,7 @@
       ></v-autocomplete>
       <v-textarea
         v-else-if=" item.type === 'textarea' "
-        v-model.trim="item.value"
+        v-model="item.value"
         :label="item.label"
         :type="item.type"
         :placeholder="item.placeholder"
@@ -253,7 +253,7 @@
       }
     },
     template: `
-    <?!= include_('dashboard/components/mynavbar.html'); ?>
+    <?!= include_('dashboard/Components/MyNavbar.html'); ?>
     `
   })
 </script>

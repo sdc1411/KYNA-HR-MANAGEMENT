@@ -15,7 +15,7 @@ class GenerateWorkingCalendar {
     return dayNames.map(dayName => daysOfWeek.indexOf(dayName));
   }
 
-  generateWorkingTimeArray(month, year, employeeCode, department) {
+  generateWorkingTimeArray(fromDate, toDate, employeeCode, department) {
     const dataSheetDocTypeManagement = this.dbEmployeeContractManagement.getSheetByName(CONFIG.SHEET_NAME.DOC_TYPE_MANAGEMENT);
     const dataDocTypeManagement = dataSheetDocTypeManagement.getDataRange().getValues();
 
@@ -35,12 +35,10 @@ class GenerateWorkingCalendar {
         applyTo: dataDocTypeManagement[i][16],
       };
 
-      const startDate = new Date(year, month - 1, 1);
-      const endDate = new Date(year, month, 0);
-      // console.log(startDate)
-      // console.log(endDate)
-
-      if (items.docType !== 'OFF' && items.workingTimeType !== '' && items.applyFrom <= endDate && items.applyTo >= startDate || items.applyTo === '') {
+      const currentDate = new Date(fromDate);
+      const endDate = new Date(toDate);
+      if (!items.workingTimeType || items.workingTimeType === '' || items.docType === 'OFF' || items.docType === 'QD' || items.docType === 'PLHDLD') {continue}
+      if (items.applyFrom <= endDate && (items.applyTo >= currentDate || items.applyTo === '')) {
         appliedDataDocTypeManagement.push(items);
       }
     }
@@ -57,7 +55,7 @@ class GenerateWorkingCalendar {
       const matchingWorkingTimeType = workingTimeTypesData.find(type => type[1] === employee.workingTimeType);
       
       if (!matchingWorkingTimeType) {
-        console.log(`No matching working time type found for employee ${employee.employeeCode}`);
+        // console.log(`No matching working time type found for employee ${employee.employeeCode}`);
         return null; // Skip this entry
       }
       
@@ -96,25 +94,19 @@ class GenerateWorkingCalendar {
 
     // console.log(datafilter)
 
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    // const startDate = new Date(year, month - 1, 1);
+    // const endDate = new Date(year, month, 0);
 
     const workingTimeArray = [];
+    const currentDate = new Date(fromDate);
+    const endDate = new Date(toDate);
 
-    const daysInMonth = endDate.getDate();
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const currentDate = new Date(year, month - 1, day);
-
-      // console.log(datafilter.length)
+    while (currentDate <= endDate) {
+      const dayOfWeek = currentDate.getDay();
+      const dayName = this.getDayName(dayOfWeek)
 
       for (let i = 0; i <= datafilter.length - 1; i++) {
-
-        // console.log(datafilter[i].applyTo)
-        // console.log(currentDate > datafilter[i].applyTo)
         if (currentDate >= datafilter[i].applyFrom && currentDate <= datafilter[i].applyTo || datafilter[i].applyTo === '' ) { 
-          const dayOfWeek = currentDate.getDay();
-          const dayName = this.getDayName(dayOfWeek);
 
           const workingAllDay = datafilter[i].workingAllDay || [];
           const workingOptionalDay = datafilter[i].workingOptionalDay || [];
@@ -122,6 +114,10 @@ class GenerateWorkingCalendar {
           let startTime = "";
           let endTime = "";
           let subid = "";
+          let idYear = currentDate.getFullYear()
+          let idMonth = (currentDate.getMonth()+1 < 10) ? '0' + (currentDate.getMonth()+1) : currentDate.getMonth()+1
+          let idDate =  (currentDate.getDate() < 10) ? '0' + currentDate.getDate() : currentDate.getDate()
+          let idDept = datafilter[i].department.substring(0,4) + datafilter[i].department.slice(-4)
 
           if (workingAllDay.includes && workingAllDay.includes(dayOfWeek)) { 
               startTime = datafilter[i].startShiftAllDay;
@@ -130,19 +126,20 @@ class GenerateWorkingCalendar {
               if (startTime !== "") {
                 const entry = {
                   createAt: new Date(),
-                  id: datafilter[i].employeeCode + currentDate.getFullYear() + currentDate.getMonth() + currentDate.getDate() + subid,
+                  id: datafilter[i].employeeCode + idYear + idMonth + idDate + subid,
+                  idDept: idDept + idYear + idMonth + idDate,
                   employeeCode: datafilter[i].employeeCode,
                   employeeName: datafilter[i].employeeName,
                   docType: datafilter[i].docType,
                   workingTimeType: datafilter[i].workingTimeType,
                   workingTimeTypeName: datafilter[i].workingTimeTypeName,
-                  workingMonth: String(month),
-                  workingYear: String(year),
+                  workingMonth: String(currentDate.getMonth()+1),
+                  workingYear: String(currentDate.getFullYear()),
                   workingDay: dayName,
                   startShift: startTime,
-                  startDate: currentDate,
+                  startDate: new Date(currentDate),
                   endShift: endTime,
-                  endDate: currentDate,
+                  endDate: new Date(currentDate),
                   idStatus: 'Approved',
                 };
                 workingTimeArray.push(entry);
@@ -156,19 +153,20 @@ class GenerateWorkingCalendar {
               if (startTime !== "") {
                 const entry = {
                   createAt: new Date(),
-                  id: datafilter[i].employeeCode + currentDate.getFullYear() + currentDate.getMonth() + currentDate.getDate() + subid,
+                  id: datafilter[i].employeeCode + idYear + idMonth + idDate + subid,
+                  idDept: idDept + idYear + idMonth + idDate,
                   employeeCode: datafilter[i].employeeCode,
                   employeeName: datafilter[i].employeeName,
                   docType: datafilter[i].docType,
                   workingTimeType: datafilter[i].workingTimeType,
                   workingTimeTypeName: datafilter[i].workingTimeTypeName,
-                  workingMonth: String(month),
-                  workingYear: String(year),
+                  workingMonth: String(currentDate.getMonth()+1),
+                  workingYear: String(currentDate.getFullYear()),
                   workingDay: dayName,
                   startShift: startTime,
-                  startDate: currentDate,
+                  startDate: new Date(currentDate),
                   endShift: endTime,
-                  endDate: currentDate,
+                  endDate: new Date(currentDate),
                   idStatus: 'Approved',
                 };
                 workingTimeArray.push(entry);
@@ -176,143 +174,238 @@ class GenerateWorkingCalendar {
           }
         }
       }
+      currentDate.setDate(currentDate.getDate() + 1); // Increment currentDate by 1 day
     }
     return workingTimeArray;
   }
 
-  createWorkingCalendar(month, year, employeeCode, department) {
-    
+  createWorkingCalendarReplace(fromDate, toDate, employeeCode, department) {
     const destinationSS = this.dbWorkingCalendar.getSheetByName('workingCalendar')
+    const rows = this.generateWorkingTimeArray(fromDate, toDate, employeeCode, department);
+    this.deleteWorkingCalendar(fromDate, toDate, employeeCode, department)
 
-    const generatedData = this.generateWorkingTimeArray(month, year, employeeCode, department);
-    // console.log(generatedData)
+    const data = rows.map(entry => [
+      entry.createAt,
+      entry.id,
+      entry.idDept,
+      entry.employeeCode,
+      entry.employeeName,
+      entry.docType,
+      entry.workingTimeType,
+      entry.workingTimeTypeName,
+      entry.workingMonth,
+      entry.workingYear,
+      entry.workingDay,
+      entry.startShift,
+      entry.startDate,
+      entry.endShift,
+      entry.endDate,
+      entry.idStatus
+    ]);
+    const destinationValue = destinationSS.getDataRange()
+    const lastRow = destinationValue.getLastRow()
+    const lastCol = destinationValue.getLastColumn()
+    destinationSS.getRange(lastRow + 1,1,rows.length,lastCol).setValues(data)
 
-    if (generatedData.length > 0) {
-      for (let i = 0; i < generatedData.length; i++) {
-        const entry = generatedData[i];
-        
-        const duplicateRow = destinationSS
-          .createTextFinder(
-            `${entry.id}`
-          )
-          .findNext();
-        
-        if (!duplicateRow) {
-          // Map each property to the corresponding column index in the sheet
-          const row = [
-            entry.createAt,
-            entry.id,
-            entry.employeeCode,
-            entry.employeeName,
-            entry.docType,
-            entry.workingTimeType,
-            entry.workingTimeTypeName,
-            entry.workingMonth,
-            entry.workingYear,
-            entry.workingDay,
-            entry.startShift,
-            entry.startDate,
-            entry.endShift,
-            entry.endDate,
-            entry.idStatus
-          ];
-          
-          // console.log(row)
-          // Append the row to the workingCalendarSheet
-          destinationSS.appendRow(row);
-          console.log("Generated sucessfull.")
-            } else {
-              console.log(`Lịch làm việc của nhân viên ${entry.employeeCode} trong ${entry.workingMonth}/${entry.workingYear} đã được tạo`);
-            }
-          }
-        } else {
-          console.log("No generated data to send.");}
   }
 
-  updateWorkingCalendar(month, year, employeeCode, department) {
-    
+  createWorkingCalendarNew(fromDate, toDate, employeeCode, department) {
     const destinationSS = this.dbWorkingCalendar.getSheetByName('workingCalendar')
+    const rows = this.generateWorkingTimeArray(fromDate, toDate, employeeCode, department);
     
-    const datafilter = this.generateWorkingTimeArray(month, year, employeeCode, department);
+    const data = rows.map(entry => [
+      entry.createAt,
+      entry.id,
+      entry.idDept,
+      entry.employeeCode,
+      entry.employeeName,
+      entry.docType,
+      entry.workingTimeType,
+      entry.workingTimeTypeName,
+      entry.workingMonth,
+      entry.workingYear,
+      entry.workingDay,
+      entry.startShift,
+      entry.startDate,
+      entry.endShift,
+      entry.endDate,
+      entry.idStatus
+    ]);
+    const destinationValue = destinationSS.getDataRange()
+    const lastRow = destinationValue.getLastRow()
+    const lastCol = destinationValue.getLastColumn()
+    destinationSS.getRange(lastRow + 1,1,rows.length,lastCol).setValues(data)
+  }
 
-    for (const entry of datafilter) {
-      const duplicateRow = destinationSS
-        .createTextFinder(entry.id)
-        .findNext();
+  deleteWorkingCalendar(fromDate, toDate, employeeCode, department) {
+    const destinationSS = this.dbWorkingCalendar.getSheetByName('workingCalendar')
+    const deletedWorkingTimeArray = [];
+    const currentDate = new Date(fromDate);
+    const endDate = new Date(toDate);
+    while (currentDate <= endDate) {
+      let idYear = currentDate.getFullYear()
+      let idMonth = (currentDate.getMonth()+1 < 10) ? '0' + (currentDate.getMonth()+1) : currentDate.getMonth()+1
+      let idDate =  (currentDate.getDate() < 10) ? '0' + currentDate.getDate() : currentDate.getDate()
+      let idEmp = (employeeCode) ? employeeCode : ''
+      let idDept = (department) ? department.substring(0,4) + department.slice(-4) : ''
 
-      if (duplicateRow) {
-        console.log(`Updating working calendar entry with id ${entry.id}`);
-        
-        // Map each property to the corresponding column index in the sheet
-        const row = [
-          entry.createAt,
-          entry.id,
-          entry.employeeCode,
-          entry.employeeName,
-          entry.docType,
-          entry.workingTimeType,
-          entry.workingTimeTypeName,
-          entry.workingMonth,
-          entry.workingYear,
-          entry.workingDay,
-          entry.startShift,
-          entry.startDate,
-          entry.endShift,
-          entry.endDate,
-          entry.idStatus
-        ];
-        
-        // Get the row number of the duplicate entry
-        const rowIndex = duplicateRow.getRow();
-        
-        // Update the existing row with the new data
-        destinationSS.getRange(rowIndex, 1, 1, row.length).setValues([row]);
-        
-        console.log(`Updated working calendar entry with id ${entry.id}`);
-      }
+      const entryA = {
+        id: idEmp + idYear + idMonth + idDate + "A",
+        idDept: idDept + idYear + idMonth + idDate,
+      };
+      deletedWorkingTimeArray.push(entryA);
+      
+      const entryB = {
+        id: idEmp + idYear + idMonth + idDate + "B",
+        idDept: idDept + idYear + idMonth + idDate,
+      };
+      deletedWorkingTimeArray.push(entryB);
+      currentDate.setDate(currentDate.getDate() + 1); // Increment currentDate by 1 day
     }
-  }
 
-  deleteWorkingCalendar(month, year, employeeCode, department) {
-    
-    const destinationSS = this.dbWorkingCalendar.getSheetByName('workingCalendar')
-    
-    const datafilter = this.generateWorkingTimeArray(month, year, employeeCode, department);
+    console.log(deletedWorkingTimeArray)
 
-    for (const entry of datafilter) {
-      const matchingRow = destinationSS
-        .createTextFinder(entry.id)
-        .findNext();
-
-      if (matchingRow) {
-        console.log(`Deleting working calendar entry with id ${entry.id}`);
-        
+    if (employeeCode) {
+        for (const entry of deletedWorkingTimeArray) {
+        const matchingRow = destinationSS
+          .createTextFinder(entry.id)
+          .findNext();
+        if (matchingRow) {     
+          // Get the row number of the matching entry
+          const rowIndex = matchingRow.getRow();
+          // Delete the entire row
+          destinationSS.deleteRow(rowIndex);
+        }
+      }
+    } else if (department) {
+       for (const entry of deletedWorkingTimeArray) {
+        let matchingRow;
+        while ((matchingRow = destinationSS.createTextFinder(entry.idDept).findNext())) {
         // Get the row number of the matching entry
         const rowIndex = matchingRow.getRow();
-        
         // Delete the entire row
         destinationSS.deleteRow(rowIndex);
-        
-        console.log(`Deleted working calendar entry with id ${entry.id}`);
+        }
       }
-    }
+    } else return
+
   }
 
 }
 
-function createWorkingCalendar(month, year, employeeCode, department) {
-  const app = new GenerateWorkingCalendar()
-  app.createWorkingCalendar(month, year, employeeCode, department)
+
+function createWorkingCalendar(params) {
+  const item = JSON.parse(params)
+  const object = item.object
+  const fromDate = new Date(item.fromDate)
+  const toDate = new Date(item.toDate)
+  const employeeCode = item.employeeCode
+  const department = item.department
+  if (object === 'Tất cả phòng ban') {
+    const appCalendar = new GenerateWorkingCalendar()
+    appCalendar.createWorkingCalendarNew(fromDate, toDate, employeeCode, department)
+    const app = new App()
+    const data = {
+      database: "workingCalendarDatabase",
+      sheetName: "workingCalendarRequests",
+      item: {
+        fromDate: fromDate,
+        toDate: toDate,
+        type: item.type,
+        object: item.object,
+        employeeCode: item.employeeCode,
+        department: item.department
+      }
+    }
+    app.createItem(data)
+
+    const response = {
+      success: true,
+      message: `Lịch làm việc đang được tạo!`,
+    }
+    return JSON.stringify(response);
+  } else {
+    const appCalendar = new GenerateWorkingCalendar()
+    appCalendar.createWorkingCalendarReplace(fromDate, toDate, employeeCode, department)
+    const app = new App()
+    const data = {
+      database: "workingCalendarDatabase",
+      sheetName: "workingCalendarRequests",
+      item: {
+        fromDate: fromDate,
+        toDate: toDate,
+        type: item.type,
+        object: item.object,
+        employeeCode: item.employeeCode,
+        department: item.department
+      }
+    }
+    app.createItem(data)
+
+    const response = {
+      success: true,
+      message: `Lịch làm việc đang được tạo!`,
+    }
+    return JSON.stringify(response);
+  }
 }
 
-function updateWorkingCalendar(month, year, employeeCode, department) {
-  const app = new GenerateWorkingCalendar()
-  app.updateWorkingCalendar(month, year, employeeCode, department)
+function updateWorkingCalendar(params) {
+  const item = JSON.parse(params)
+  const fromDate = new Date(item.fromDate)
+  const toDate = new Date(item.toDate)
+  const employeeCode = item.employeeCode
+  const department = item.department
+  const appCalendar = new GenerateWorkingCalendar()
+  appCalendar.createWorkingCalendarReplace(fromDate, toDate, employeeCode, department)
+  const app = new App()
+  const data = {
+      database: "workingCalendarDatabase",
+      sheetName: "workingCalendarRequests",
+      item: {
+        fromDate: fromDate,
+        toDate: toDate,
+        type: item.type,
+        object: item.object,
+        employeeCode: item.employeeCode,
+        department: item.department
+      }
+    }
+  app.createItem(data)
+  const response = {
+    success: true,
+    message: `Lịch làm việc đang được cập nhật!`,
+  }
+  return JSON.stringify(response);
 }
 
-function deleteWorkingCalendar(month, year, employeeCode, department) {
-  const app = new GenerateWorkingCalendar()
-  app.deleteWorkingCalendar(month, year, employeeCode, department)
+function deleteWorkingCalendar(params) {
+  const item = JSON.parse(params)
+  const fromDate = new Date(item.fromDate)
+  const toDate = new Date(item.toDate)
+  const employeeCode = item.employeeCode
+  const department = item.department
+  const appCalendar = new GenerateWorkingCalendar()
+  appCalendar.deleteWorkingCalendar(fromDate, toDate, employeeCode, department)
+  const app = new App()
+  const data = {
+      database: "workingCalendarDatabase",
+      sheetName: "workingCalendarRequests",
+      item: {
+        fromDate: fromDate,
+        toDate: toDate,
+        type: item.type,
+        object: item.object,
+        employeeCode: item.employeeCode,
+        department: item.department
+      }
+    }
+  app.createItem(data)
+  const response = {
+    success: true,
+    message: `Lịch làm việc đang được xóa!`,
+  }
+  return JSON.stringify(response);
 }
 
 

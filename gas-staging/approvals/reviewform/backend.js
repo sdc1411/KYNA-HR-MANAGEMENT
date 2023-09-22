@@ -51,7 +51,7 @@ function submittingReviewForm(data) {
   // console.log(item)
   // console.log(data)
 
-  const ws = SpreadsheetApp.openById(ConfigReviewForm.ApprovalFlow.WorkSheet)
+  const ws = SpreadsheetApp.openById(CONFIG.DATABASE.REVIEW)
   const sheet = ws.getSheetByName(ConfigReviewForm.ResponseDatabase.SheetName)
   const uid = ""
   // const status = ""
@@ -74,7 +74,7 @@ function submittingReviewForm(data) {
 // flow phê duyệt đơn thôi việc
 function SubmitReviewForm() {
 
-  const responseWS = SpreadsheetApp.openById(ConfigReviewForm.ApprovalFlow.WorkSheet);
+  const responseWS = SpreadsheetApp.openById(CONFIG.DATABASE.REVIEW);
   const url = CONFIG.WebAppUrl
   const title = ConfigReviewForm.ResponseDatabase.Title
   const sheetname = ConfigReviewForm.ResponseDatabase.SheetName 

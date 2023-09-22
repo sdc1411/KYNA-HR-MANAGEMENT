@@ -169,6 +169,7 @@
       
     },
     currentAddress: {
+      type: "textarea",
       label: "Địa chỉ hiện tại",
       value: null,
       icon: "mdi-map-marker",
@@ -187,6 +188,7 @@
       
     },
     cmndPlace: {
+      type: "textarea",
       label: "Nơi cấp",
       icon: "mdi-fireplace-off",
       value: null,
@@ -213,18 +215,21 @@
       
     },
     bankName: {
+      type: "textarea",
       label: "Tên ngân hàng",
       value: null,
       icon: "mdi-hoop-house",
       
     },
     bankBranch: {
+      type: "textarea",
       label: "Tên chi nhánh ngân hàng",
       value: null,
       icon: "mdi-home-group",
       
     },
     registerHospital: {
+      type: "textarea",
       label: "Tên bệnh viên đăng ký BHXH",
       value: null,
       icon: "mdi-hospital-box",
@@ -284,11 +289,13 @@
       ],
     },
     newContractType: {
+      type: "textarea",
       label: "Hình thức hợp đồng mới",
       value: null,
       icon: "mdi-file-sign",
     },
     newPosition: {
+      type: "textarea",
       label: "Vị trí công việc mới",
       value: null,
       icon: "mdi-card-account-details-outline",
@@ -311,9 +318,9 @@
       label: "Đơn vị",
       items: ['tháng','giờ cộng tác','bài cộng tác','ca cộng tác (4 giờ)','ca cộng tác (8 giờ)'],
       value: null,
-      icon: "mdi-currency-usd",
     },
     newOther: {
+      type: "textarea",
       label: "Các điều khoản thay đổi khác",
       value: null,
       icon: "mdi-account-details",
@@ -328,6 +335,7 @@
       
     },
     requestReason: {
+      type: "textarea",
       label: "Lý do của việc đề xuất (nếu có)",
       value: null,
       icon: "mdi-account-details-outline",
@@ -446,6 +454,7 @@
       rules: [],
     },
     requestReason: {
+      type: "textarea",
       label: "Mô tả lý do (Optional)",
       value: null,
       icon: "mdi-note-text",
@@ -485,6 +494,7 @@
       ],
     },
     description: {
+      type: "textarea",
       label: "Mô tả",
       value: null,
       rules: [
@@ -531,6 +541,42 @@
       rules: [],
       multiple: true,
     },
+  }
+
+  Forms.WorkingCalendarForm = {
+    fromDate: {
+      label: "Từ ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    toDate: {
+      label: "Đến ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    object: {
+      label: "Đối tượng",
+      type: "autocomplete",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    employeeCode: {
+      label: "Mã nhân viên",
+      value: null,
+      rules: [],
+    },
+    department: {
+      type: "autocomplete",
+      label: "Phòng ban",
+      value: null,
+      rules: [],
+    }
   }
 
 </script>

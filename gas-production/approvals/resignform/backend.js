@@ -50,7 +50,7 @@ function submittingResignForm(data) {
   const lastWorkingDayFormated = convertDate(item.lastWorkingDay)
 
 
-  const ws = SpreadsheetApp.openById(ConfigResignForm.ApprovalFlow.WorkSheet)
+  const ws = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS)
   const sheet = ws.getSheetByName(ConfigResignForm.ResponseDatabase.SheetName)
 
   const responseId = Utilities.base64EncodeWebSafe(Utilities.getUuid())
@@ -83,7 +83,7 @@ function submittingResignForm(data) {
 // flow phê duyệt đơn thôi việc
 function SubmitResignForm() {
 
-  const responseWS = SpreadsheetApp.openById(ConfigResignForm.ApprovalFlow.WorkSheet);
+  const responseWS = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS);
   const url = CONFIG.WebAppUrl
   const title = ConfigResignForm.ResponseDatabase.Title
   const sheetname = ConfigResignForm.ResponseDatabase.SheetName 

@@ -7,3 +7,13 @@
 // staging
 {"scriptId":"1klabwF-5orFcrVtl37AHC5mAtk3BpjyHCDICNBWBrG5__sGrDaXZtHRG","rootDir":"./gas-staging"}
 
+Thư viện GAS connect với FireBase (sử dụng Secret):
+'1hguuh4Zx72XVC1Zldm_vTtcUUKUA6iBUOoGnJUWLfqDWx5WlOJHqYkrt'
+
+Thư viện GAS connect với FireBase (sử dụng 0Auth2 ID):
+'1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF'
+
+
+Thư viện GAS connect với Firestore:
+'1VUSl4b1r1eoNcRWotZM3e87ygkxvXltOgyDZhixqncz9lQ3MjfT1iKFw'
+

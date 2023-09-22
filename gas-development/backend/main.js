@@ -267,7 +267,7 @@ class App {
   }
 
   createItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : null
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()

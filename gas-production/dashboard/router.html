@@ -1,14 +1,13 @@
 <script src="https://unpkg.com/vue-router@3"></script>
 <!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100348/unpkg.com_vue-router_3.6.5_dist_vue-router_tabjvt.js"></script> -->
- <?!= include_("dashboard/components/leaveform/leaveform.html"); ?>
- <?!= include_("dashboard/components/resignform/resignform.html"); ?>
- <?!= include_("dashboard/components/reviewform/reviewform.html"); ?>
- <?!= include_("dashboard/components/updateprofileform/updateprofileform.html"); ?>
- <?!= include_("dashboard/components/workingtimeform/workingtimeform.html"); ?>
-
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.core.min.js" integrity="sha512-UhlYw//T419BPq/emC5xSZzkjjreRfN3426517rfsg/XIEC02ggQBb680V0VvP+zaDZ78zqse3rqnnI5EJ6rxA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-
+ <?!= include_("dashboard/Components/LeaveForm/LeaveForm.html"); ?>
+ <?!= include_("dashboard/Components/ResignForm/ResignForm.html"); ?>
+ <?!= include_("dashboard/Components/ReviewForm/ReviewForm.html"); ?>
+ <?!= include_("dashboard/Components/UpdateProfileForm/UpdateProfileForm.html"); ?>
+ <?!= include_('dashboard/Pages/WorkingCalendar/SelfWorkingCalendar.html'); ?>
+ <?!= include_('dashboard/Pages/WorkingCalendar/TeamWorkingCalendar.html'); ?>
+ <?!= include_('dashboard/Pages/WorkingCalendar/CreateWorkingShift.html'); ?>
+ <?!= include_('dashboard/Pages/WorkingCalendar/CreateWorkingCalendar.html'); ?>
 
 <script>
 
@@ -38,7 +37,7 @@
       }
     },
     template: `
-      <?!= include_('dashboard/view/login.html'); ?>
+      <?!= include_('dashboard/Pages/Login_template.html'); ?>
     `
   }
 
@@ -85,8 +84,8 @@
       // this.onPageLoad()
     },
     template: `<div>
-      <?!= include_('dashboard/view/home/section1.html') ?>
-      <?!= include_('dashboard/view/home/section2.html') ?>
+      <?!= include_('dashboard/Pages/HomeSection1_template.html') ?>
+      <?!= include_('dashboard/Pages/HomeSection2_template.html') ?>
     </div>`
   }
 
@@ -213,7 +212,7 @@
       this.onPageLoad()
     },
     template: `
-    <?!= include_('dashboard/view/leaves/receivedleaves.html'); ?>
+    <?!= include_('dashboard/Pages/Leaves/ReceivedLeaves_template.html'); ?>
     `
   }
 
@@ -270,7 +269,7 @@
       this.onPageLoad()
     },
     template: `
-    <?!= include_('dashboard/view/leaves/sentleaves.html'); ?>
+    <?!= include_('dashboard/Pages/Leaves/SentLeaves_template.html'); ?>
     `
   }
 
@@ -349,7 +348,7 @@
       this.onPageLoad()
     },
     template: `
-    <?!= include_('dashboard/view/users.html'); ?>
+    <?!= include_('dashboard/Pages/Users/Users_template.html'); ?>
     `
   }
 
@@ -378,187 +377,9 @@
       },
     },
     template: `
-      <?!= include_('dashboard/view/profile.html'); ?>
+      <?!= include_('dashboard/Pages/Profile_template.html'); ?>
       `
   }
-
-
-
-
-  const WorkingCalendar = {
-    data: () => ({
-      page: 1,
-      pageSize: -1,
-      headers: [
-        {text: "Mã nhân viên", value: "employeeCode"},
-        {text: "Tên nhân viên", value: "employeeName"},
-        {text: "Team", value: "department"},
-        {text: "Vị trí", value: "position"},
-        {text: "Ca đầu", value: "startShift"},
-        {text: "Ngày đầu", value: "startDate"},
-      ],
-      type: 'month',
-      types: [
-        {text: 'Tháng', value: 'month'},
-        {text: 'Tuần', value: 'week'},
-        {text: 'Ngày', value: 'day'}
-      ],
-      mode: 'stack',
-      modes: ['stack', 'column'],
-      weekday: [1, 2, 3, 4, 5, 6, 0],
-      weekdays: [
-        { text: 'Mon - Sun', value: [1, 2, 3, 4, 5, 6, 0] },
-        { text: 'Sun - Sat', value: [0, 1, 2, 3, 4, 5, 6] },
-      ],
-      value: '',
-      events: [],
-      // colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green'],
-      names: ['Ngày làm việc', 'Nghỉ phép năm', 'Làm việc tại nhà', 'Nghỉ bù', 'Nghỉ không lương'],
-      selectedEvent: {},
-      selectedElement: null,
-      selectedOpen: false,
-      selectXlsx: null,
-    }),
-    computed: {
-      ...Vuex.mapState({
-        loading: "loading",
-        loginUser: "loginUser",
-        statusColor: 'statusColor',
-        workingCalendar: 'workingCalendar',
-      }),
-      ...Vuex.mapGetters({
-        isAdmin: "isAdmin",
-        isHR: "isHR",
-        workingCalendarFilter: "workingCalendarFilter",
-      }),
-
-    },
-
-    methods: {
-      viewDay ({ date }) {
-        this.focus = date
-        this.type = 'day'
-      },
-      formatDate(date) {
-        if (!date) return ''; // Return an empty string if date is undefined
-
-        const formattedDate = new Date(date);
-        const day = formattedDate.getDate().toString().padStart(2, '0');
-        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
-        const year = formattedDate.getFullYear();
-
-        return `${day}/${month}/${year}`;
-      },
-      async onPageLoad(){
-          this.$store.dispatch("getItems", {
-          database: "workingCalendarDatabase", 
-          sheetName: "workingCalendar", 
-          page: this.page, 
-          pageSize: this.pageSize,
-          filters: {
-            employeeCode: this.loginUser.Employee_code,
-            },
-          })
-          this.$store.dispatch("getItems", {
-          database: "leaveDaysDatabase", 
-          sheetName: "leaveTracking", 
-          page: this.page, 
-          pageSize: this.pageSize,
-          filters: {
-            employeeCode: this.loginUser.Employee_code,
-            
-            },
-          })
-      },
-      convertItemsToEvents(items) {
-        const events = [];
-        items.forEach(item => {
-          const a1 = new Date(item.startDate);
-          const a2 = new Date(item.startShift)
-
-          const b1 = new Date(item.endDate)
-          const b2 = new Date(item.endShift)
-
-          const startDateTime = new Date(a1.getFullYear(),a1.getMonth(),a1.getDate(),a2.getHours(),a2.getMinutes())
-          const endDateTime = new Date(b1.getFullYear(),b1.getMonth(),b1.getDate(),b2.getHours(),b2.getMinutes())
-
-          const event = {
-            name: item.workingTimeTypeName || item.leaveTypes ,
-            start: startDateTime,
-            end: endDateTime,
-            color: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes }),
-            timed: true,
-            details: 'Từ ' + startDateTime.toLocaleString() + ' đến ' + endDateTime.toLocaleString() ,
-          };
-          events.push(event);
-        });
-        // console.log(events)
-        return events;
-      },
-      getEventColor (event) {
-        const colorMap = {
-        'Ngày làm việc': 'cyan',
-        'Nghỉ phép năm': 'indigo',
-        'Làm việc tại nhà': 'deep-purple',
-        'Nghỉ bù': 'accent',
-        'Nghỉ không lương': 'green',
-      };
-      return colorMap[event.name] || 'grey darken-1';
-      },
-      showEvent ({ nativeEvent, event }) {
-        const open = () => {
-          this.selectedEvent = event
-          this.selectedElement = nativeEvent.target
-          requestAnimationFrame(() => requestAnimationFrame(() => this.selectedOpen = true))
-        }
-
-        if (this.selectedOpen) {
-          this.selectedOpen = false
-          requestAnimationFrame(() => requestAnimationFrame(() => open()))
-        } else {
-          open()
-        }
-        nativeEvent.stopPropagation()
-      },
-      uploadXlsx() {
-          if (!this.selectXlsx) {
-            console.log("Please upload a xlsx file")
-            return;
-          }
-          if (this.selectXlsx) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              /* Parse data */
-              const bstr = e.target.result;
-              const wb = XLSX.read(bstr, { type: "binary" });
-              /* Get first worksheet */
-              const wsname = wb.SheetNames[0];
-              const ws = wb.Sheets[wsname];
-              /* Convert array of arrays */
-              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-               
-              console.log(data);
-            };
-
-            reader.readAsBinaryString(this.selectXlsx);
-          }
-          this.selectXlsx = null;
-      },
-
-    },
-    watch:{
-      page: function(){
-        this.onPageLoad()
-      },
-    },
-    created(){
-      this.onPageLoad()
-    },
-    template: `
-      <?!= include_('dashboard/view/workingcalendar/workingcalendar.html'); ?>
-      `
-  }
-
 
 
   const ResignHandover = {
@@ -647,115 +468,42 @@
       this.onPageLoad()
     },
     template: `
-    <?!= include_('dashboard/view/resignlist/resignhandover.html'); ?>
+    <?!= include_('dashboard/Pages/ResignList/ResignHandover_template.html'); ?>
     `
   }
 
 
-
-  const WorkingCategory = {
-    data: () => ({
-      page: 1,
-      pageSize: -1,
-      search: '',
-      headers: [
-        {
-          text: "ID",
-          align: "start",
-          sortable: false,
-          value: "id",
-        },
-        {text: "Mã ca", value: "workingTimeType"},
-        {text: "Mô tả", value: "description"},
-        {text: "Ca bắt đầu (nguyên ngày)",value: "startShiftAllDay"},
-        {text: "Ca kết thúc (nguyên ngày)",value: "endShiftAllDay"},
-        {text: "Ngày làm việc (nguyên ngày)",value: "workingAllDay"},
-        {text: "Ca bắt đầu (optional)",value: "startShiftOptional"},
-        {text: "Ca kết thúc (optional)",value: "endShiftOptional"},
-        {text: "Ngày làm việc (optional)",value: "workingOptionalDay"},
-      ],
-      selectXlsx: null,
+  const WorkingCalendar = {
+    props: ["id"],
+    data: ()=>({
+      activeTab: "/WorkingCalendar",
+      tabs: [
+        { id: 1, name: "Lịch làm việc cá nhân", route: "/WorkingCalendar" },
+        { id: 2, name: "Lịch làm việc Team", route: "/WorkingCalendar/TeamWorkingCalendar"},
+        { id: 3, name: "Tạo lịch làm việc", route: "/WorkingCalendar/CreateWorkingCalendar"},
+        { id: 4, name: "Tạo ca làm việc", route: "/WorkingCalendar/CreateWorkingShift"},
+      ]
     }),
-    computed: {
-      ...Vuex.mapState({
-        loading: "loading",
-        loginUser: "loginUser",
-        statusColor: 'statusColor',
-        workingTimeType: 'workingTimeType',
-      }),
-      ...Vuex.mapGetters({
-        isAdmin: "isAdmin",
-        isHR: "isHR",
-      }),
-    },
-    methods: {
-      async onPageLoad(){
-          this.$store.dispatch("getItems", {
-          database: "employeeContractDatabase", 
-          sheetName: "workingTimeType", 
-          page: this.page, 
-          pageSize: this.pageSize
-          })
-      },
-      formatTime(dateTime) {
-        if (dateTime) {
-          const dateObj = new Date(dateTime);
-          return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-        return '';
-      },
-      uploadXlsx() {
-          if (!this.selectXlsx) {
-            console.log("Please upload a xlsx file")
-            return;
-          }
-          if (this.selectXlsx) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-              /* Parse data */
-              const bstr = e.target.result;
-              const wb = XLSX.read(bstr, { type: "binary" });
-              /* Get first worksheet */
-              const wsname = wb.SheetNames[0];
-              const ws = wb.Sheets[wsname];
-              /* Convert array of arrays */
-              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-               
-              console.log(data);
-            };
-
-            reader.readAsBinaryString(this.selectXlsx);
-          }
-          this.selectXlsx = null;
-      },
-    },
-    watch:{
-      page: function(){
-        this.onPageLoad()
-      },
-    },
-    created(){
-      this.onPageLoad()
-    },
     template: `
-      <?!= include_('dashboard/view/workingcalendar/workingcategory.html'); ?>
+      <?!= include_('dashboard/Pages/WorkingCalendar/WorkingCalendar_template.html'); ?>
       `
   }
 
 
-
-
-
   const routes = [
     { path: '/', component: Dashboard, meta: {icon: "mdi-view-dashboard", title: "Dashboard"} },
-    { path: '/login', component: LoginView, meta: {icon: "mdi-login", title: "Login"}},
-    { path: '/sentleaves', component: SentLeaves, meta: {title: "Đơn đã gửi"} },
-    { path: '/receivedleaves', component: ReceivedLeaves, meta: {title: "Đơn đã nhận"} },
-    { path: '/users', component: Users, meta: {icon: "mdi-microsoft-teams", title: "Danh sách Team Users"} },
-    { path: '/profile', component: UserProfile, meta: {icon: "mdi-account", title: "Hồ sơ nhân viên"} },
-    { path: '/workingcalendar', component: WorkingCalendar, meta: {title: "Lịch làm việc"} },
-    { path: '/workingcategory', component: WorkingCategory, meta: {title: "Danh mục ca làm việc"} },
-    { path: '/resignhandover', component: ResignHandover, meta: {icon: "mdi-list-status", title: "Bàn giao nghỉ việc"} },
+    { path: '/Login', component: LoginView, meta: {icon: "mdi-login", title: "Login"}},
+    { path: '/SentLeaves', component: SentLeaves, meta: {title: "Đơn đã gửi"} },
+    { path: '/ReceivedLeaves', component: ReceivedLeaves, meta: {title: "Đơn đã nhận"} },
+    { path: '/Users', component: Users, meta: {icon: "mdi-microsoft-teams", title: "Danh sách Team Users"} },
+    { path: '/Profile', component: UserProfile, meta: {icon: "mdi-account", title: "Hồ sơ nhân viên"} },
+    { path: "/WorkingCalendar", component: WorkingCalendar, prop: true, meta:{icon:"mdi-calendar-account",title: "Lịch làm việc"} , children: [
+      { path: "", component: SelfWorkingCalendar, meta:{icon:"mdi-calendar-account",title: "Lịch làm việc cá nhân"} },
+      { path: "TeamWorkingCalendar", component: TeamWorkingCalendar },
+      { path: "CreateWorkingCalendar", component: CreateWorkingCalendar },
+      { path: "CreateWorkingShift", component: CreateWorkingShift }
+      ]},
+    { path: '/ResignHandover', component: ResignHandover, meta: {icon: "mdi-list-status", title: "Bàn giao nghỉ việc"} },
   
   ]
 

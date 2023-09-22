@@ -1,0 +1,120 @@
+<div>
+    <v-card>
+    <v-card-title>
+      <div>
+        <v-btn v-if="loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
+          class="btn ma-2" color="primary" elevation="2" depressed small @click="showWorkingTimeForm" :disabled="loading" rounded
+        >
+        <v-icon left>mdi-plus</v-icon>
+          Tạo ca mới
+        </v-btn>
+
+        <v-dialog v-model="dialog.show" :width="dialog.width || 500" persistent>
+          <v-form ref="workingTimeForm" @click.prevent="submitWorkingTimeForm">
+            <v-card>
+              <v-card-title class="text-h5 white--text" v-html="dialog.title" :class="dialog.color || 'primary' ">
+              </v-card-title>
+              <v-card-text class="mt-6 pb-0">
+                <v-row align="center">
+                    <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="3">
+                      <my-input :item="workingTimeForm.workingTimeType"></my-input>
+                    </v-col>
+                    <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="9">
+                      <my-input :item="workingTimeForm.description"></my-input>
+                    </v-col>
+                </v-row>
+                <v-row align="center">
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="3">
+                      <my-input :item="workingTimeForm.startShiftAllDay"></my-input>
+                  </v-col>
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="3">
+                      <my-input :item="workingTimeForm.endShiftAllDay"></my-input>
+                  </v-col>
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="6">
+                      <my-input :item="workingTimeForm.workingAllDay"></my-input>
+                  </v-col>
+                </v-row>
+
+                <v-row align="center">
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="3">
+                      <my-input :item="workingTimeForm.startShiftOptional"></my-input>
+                  </v-col>
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="3">
+                      <my-input :item="workingTimeForm.endShiftOptional"></my-input>
+                  </v-col>
+                  <v-col
+                      cols="12"
+                      class="mt-2"
+                      sm="6">
+                      <my-input :item="workingTimeForm.workingOptionalDay"></my-input>
+                  </v-col>
+                </v-row>
+              </v-card-text>
+
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn @click="submitWorkingTimeForm" text :color="dialog.color || 'primary' " :disabled="loading">
+                  <v-icon left>{{ dialog.icon }}</v-icon>
+                  {{ dialog.type }}
+                </v-btn>
+                <v-btn color=" grey " text @click="dialog.show = false" :disabled="loading">
+                  <v-icon left>mdi-cancel</v-icon>
+                  Cancel
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-form>
+        </v-dialog>
+      </div>
+
+
+      <v-spacer></v-spacer>
+      <v-text-field
+        v-model="search"
+        append-icon="mdi-magnify"
+        label="Search"
+        single-line
+        hide-details
+      ></v-text-field>
+    </v-card-title>
+    <v-data-table
+      :headers="headers"
+      :items="workingTimeType.items"
+      :search="search"
+    >
+    <template v-slot:item.startShiftAllDay="{ item }">
+      {{ item.startShiftAllDay ? formatTime(item.startShiftAllDay) : item.startShiftAllDay}}
+    </template>
+    <template v-slot:item.endShiftAllDay="{ item }">
+      {{ item.endShiftAllDay ? formatTime(item.endShiftAllDay) : item.endShiftAllDay}}
+    </template>
+    <template v-slot:item.startShiftOptional="{ item }">
+      {{ item.startShiftOptional ? formatTime(item.startShiftOptional) : item.startShiftOptional}}
+    </template>
+    <template v-slot:item.endShiftOptional="{ item }">
+      {{ item.endShiftOptional ? formatTime(item.endShiftOptional) : item.endShiftOptional}}
+    </template>
+    </v-data-table>
+  </v-card>
+</div>
