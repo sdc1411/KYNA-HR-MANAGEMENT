@@ -10,7 +10,7 @@
             <v-icon left>mdi-plus</v-icon>
               Tạo lịch làm việc
             </v-btn>
-            <v-btn v-if="loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
+            <v-btn v-if="loginUser.level === 'Manager' || loginUser.level === 'Director' || loginUser.level === 'C-level' || loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
               class="btn ma-2" color="primary" elevation="2" depressed small @click="showWorkingCalendarImport" :disabled="loading" rounded
             >
             <v-icon left>mdi-plus</v-icon>
@@ -20,7 +20,7 @@
             
             <!-- Dialog import lịch làm việc -->
             <v-dialog v-model="dialogImport.show" :width="dialogImport.width || 750" persistent>
-              <v-form ref="workingCalendarForm" @click.prevent="uploadXlsx">
+              <v-form ref="workingCalendarForm" @click.prevent="importWorkingCalendar">
                 <v-card>
                     <v-card-title class="text-h5 white--text" v-html="dialogImport.title" :class="dialogImport.color || 'primary' ">
                     </v-card-title>
@@ -73,7 +73,7 @@
                     <v-btn
                       :color="dialogImport.color"
                       :disabled="loading"
-                      @click="uploadXlsx"
+                      @click="importWorkingCalendar"
                     >
                       <v-icon left>{{dialogImport.icon}}</v-icon>
                       Import
@@ -81,6 +81,10 @@
                     <v-btn color=" grey " @click="dialogImport.show = false" :disabled="loading">
                       <v-icon left>mdi-cancel</v-icon>
                       Cancel
+                    </v-btn>
+                    <v-btn href="https://docs.google.com/spreadsheets/d/1lfQMTt4PFIgnB05Y00Isp7YZQODBuuaO/edit#gid=1932497234" :disabled="loading" target="_blank">
+                      <v-icon left>mdi-tray-arrow-down</v-icon>
+                      Download Template
                     </v-btn>
                   </v-card-actions>
                 </v-card>

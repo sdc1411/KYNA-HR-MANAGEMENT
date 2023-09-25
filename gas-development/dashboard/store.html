@@ -2,7 +2,6 @@
 <!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100272/unpkg.com_vuex_3.6.2_dist_vuex_g4fkb0.js"></script> -->
 
 <script>
-
   const store = new Vuex.Store({
     state: {
       barColor: 'rgba(0, 0, 0, .8), rgba(0, 0, 0, .8)',
@@ -148,15 +147,15 @@
       },
 
     actions: {
-      async showSnackbar({commit}, error) {
-        commit("showSnackbar", {color: "error", message: error})
+      async showSnackbar({commit},{color, message}) {
+        commit("showSnackbar", {color: color, message: message})
       },
       async getDataLoginUser({commit}, params){
         commit("startLoading")
         try {
           const location = await Utils.getLocation()
           const path = location.path || "/"
-          const {success, message, loginUser, dataUsers, dataLeaveRequests, dataLeaveTypes} = await Utils.request("getDataLoginUser", params)
+          const {success, message, app, loginUser, dataUsers, dataLeaveRequests, dataLeaveTypes} = await Utils.request("getDataLoginUser", params)
           if (!success) {
             commit("updateState", {key: "statusLogin", value: success})
             commit("showSnackbar", {color: "error", message})
@@ -167,6 +166,7 @@
           }
 
           commit("updateState", {key: "statusLogin", value: success})
+          commit("updateState", {key: "app", value: app})
           commit("updateState", {key: "loginUser", value: loginUser})
           commit("updateState", {key: "users", value: dataUsers})
           commit("updateState", {key: "leaveTypes", value: dataLeaveTypes})
@@ -280,55 +280,83 @@
         }
       },
 
-      async handleWorkingCalendar({commit}, params){
-        commit("startLoading")
-        if (params.type === 'Create') {
-            try {
-            const {success, message} = await Utils.request("createWorkingCalendar", params)
-            if (!success){
-              commit("showSnackbar", {color: "error", message})
-            }else{
-              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
-              commit("updateState", {key: "workingCalendarRequests", value: data})
-              commit("showSnackbar", {color: "success", message})
-              return true
-            }
-          }catch(err){
-            commit("showSnackbar", {color: "error", message: err.message})
-          }
-        } else if (params.type === 'Update') {
-          try {
-            const {success, message} = await Utils.request("updateWorkingCalendar", params)
-            if (!success){
-              commit("showSnackbar", {color: "error", message})
-            }else{
-              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
-              commit("updateState", {key: "workingCalendarRequests", value: data})
-              commit("showSnackbar", {color: "success", message})
-              return true
-            }
-          }catch(err){
-            commit("showSnackbar", {color: "error", message: err.message})
-          }
-        } else if (params.type === 'Delete') {
-          try {
-            const {success, message} = await Utils.request("deleteWorkingCalendar", params)
-            if (!success){
-              commit("showSnackbar", {color: "error", message})
-            }else{
-              const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
-              commit("updateState", {key: "workingCalendarRequests", value: data})
-              commit("showSnackbar", {color: "success", message})
-              return true
-            }
-          }catch(err){
-            commit("showSnackbar", {color: "error", message: err.message})
-          }
-        } else {
-          return commit("showSnackbar", {color: "error", message: 'Type chưa được định nghĩa'})
-        }
-      },
+      // async handleWorkingCalendar({commit}, params){
+      //   commit("startLoading")
+      //   if (params.type === 'Create') {
+      //       try {
+      //       const {success, message} = await Utils.request("createWorkingCalendar", params)
+      //       if (!success){
+      //         commit("showSnackbar", {color: "error", message})
+      //       }else{
+      //         const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+      //         commit("updateState", {key: "workingCalendarRequests", value: data})
+      //         commit("showSnackbar", {color: "success", message})
+      //         return true
+      //       }
+      //     }catch(err){
+      //       commit("showSnackbar", {color: "error", message: err.message})
+      //     }
+      //   } else if (params.type === 'Update' || params.type === 'Import') {
+      //     try {
+      //       await Utils.request("updateWorkingCalendar", params)
+      //       const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+      //       commit("updateState", {key: "workingCalendarRequests", value: data})
+      //     }catch(err){
+      //       commit("showSnackbar", {color: "error", message: err.message})
+      //     }
+      //   } else if (params.type === 'Delete') {
+      //     try {
+      //       await Utils.request("deleteWorkingCalendar", params)
+      //       const data = await Utils.request("getItems", {pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests"})
+      //       commit("updateState", {key: "workingCalendarRequests", value: data})
+      //     }catch(err){
+      //       commit("showSnackbar", {color: "error", message: err.message})
+      //     }
+      //   } else {
+      //     return commit("showSnackbar", {color: "error", message: 'Type chưa được định nghĩa'})
+      //   }
+      // },
 
+      async handleWorkingCalendar({ commit }, params) {
+        commit("startLoading");
+        const processRequest = async () => {
+          if (params.type === 'Create') {
+            try {
+              const { success, message } = await Utils.request("createWorkingCalendar", params);
+              if (!success) {
+                commit("showSnackbar", { color: "error", message });
+              } else {
+                const data = await Utils.request("getItems", { pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests" });
+                commit("updateState", { key: "workingCalendarRequests", value: data });
+                commit("showSnackbar", { color: "success", message });
+              }
+            } catch (err) {
+              commit("showSnackbar", { color: "error", message: err.message });
+            }
+          } else if (params.type === 'Update' || params.type === 'Import') {
+            try {
+              await Utils.request("updateWorkingCalendar", params);
+              const data = await Utils.request("getItems", { pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests" });
+              commit("updateState", { key: "workingCalendarRequests", value: data });
+            } catch (err) {
+              commit("showSnackbar", { color: "error", message: err.message });
+            }
+          } else if (params.type === 'Delete') {
+            try {
+              await Utils.request("deleteWorkingCalendar", params);
+              const data = await Utils.request("getItems", { pageSize: -1, database: "workingCalendarDatabase", sheetName: "workingCalendarRequests" });
+              commit("updateState", { key: "workingCalendarRequests", value: data });
+            } catch (err) {
+              commit("showSnackbar", { color: "error", message: err.message });
+            }
+          } else {
+            commit("showSnackbar", { color: "error", message: 'Type chưa được định nghĩa' });
+          }
+        };
+        processRequest();
+        return Promise.resolve(true);
+      },
+      
       async login({commit}, params){
         commit("startLoading")
         try {
@@ -376,4 +404,3 @@
     },
   })
 </script>
-

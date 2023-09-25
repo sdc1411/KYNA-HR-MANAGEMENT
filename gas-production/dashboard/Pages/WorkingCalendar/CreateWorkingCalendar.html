@@ -54,7 +54,6 @@ const CreateWorkingCalendar = {
         const day = formattedDate.getDate().toString().padStart(2, '0');
         const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
         const year = formattedDate.getFullYear();
-
         return `${day}/${month}/${year}`;
       },
       async onPageLoad(){
@@ -108,17 +107,17 @@ const CreateWorkingCalendar = {
 
         if (fromDateFormat > toDateFormat) {
           this.error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Phòng ban' && department === '') {
           this.error = 'Vui lòng lựa chọn Phòng ban'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Nhân viên' && employeeCode === '') {
           this.error = 'Vui lòng lựa chọn Mã nhân viên'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         const validate = this.workingCalendarRequests.items.filter((i) => type == i.type && object == i.object && department == i.department && employeeCode == i.employeeCode && 
@@ -129,19 +128,18 @@ const CreateWorkingCalendar = {
         )
         if (validate.length > 0) {
           this.error = 'Bạn đã tạo lịch làm việc cho các đối tượng này trong vùng thời gian này'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
         } else {
-          const success = await this.$store.dispatch("handleWorkingCalendar", item)
-          if (success) this.dialog.show = false
+          await this.$store.dispatch("handleWorkingCalendar", item)
+          this.$store.dispatch('showSnackbar', {color: 'success',message: 'Lịch làm việc đang được tạo'})
+          this.dialog.show = false
           this.onPageLoad()
         }
       },
-      
       async updateWorkingCalendarForm(){
         if (!this.$refs.workingCalendarForm.validate()) return
         const item = Utils.getFormValues(this.workingCalendarForm)
         item.type = 'Update'
-        const type = item.type
         const fromDateFormat = new Date(item.fromDate)
         const toDateFormat = new Date(item.toDate)
         const object = item.object
@@ -150,33 +148,33 @@ const CreateWorkingCalendar = {
 
         if (fromDateFormat > toDateFormat) {
           this.error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Tất cả phòng ban') {
           this.error = 'Bạn chỉ được update theo đối tượng Nhân viên hoặc Phòng ban'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Phòng ban' && department === '') {
           this.error = 'Vui lòng lựa chọn Phòng ban'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Nhân viên' && employeeCode === '') {
           this.error = 'Vui lòng lựa chọn Mã nhân viên'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
-        const success = await this.$store.dispatch("handleWorkingCalendar", item)
-        if (success) this.dialog.show = false
+        await this.$store.dispatch("handleWorkingCalendar", item)
+        this.$store.dispatch('showSnackbar', {color: 'success',message: 'Lịch làm việc đang được cập nhật'})
+        this.dialog.show = false
+        this.onPageLoad()
       },
-      
       async deleteWorkingCalendarForm(){
         if (!this.$refs.workingCalendarForm.validate()) return
         const item = Utils.getFormValues(this.workingCalendarForm)
         item.type = 'Delete'
-        const type = item.type
         const fromDateFormat = new Date(item.fromDate)
         const toDateFormat = new Date(item.toDate)
         const object = item.object
@@ -185,51 +183,76 @@ const CreateWorkingCalendar = {
 
         if (fromDateFormat > toDateFormat) {
           this.error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Tất cả phòng ban') {
           this.error = 'Bạn chỉ được delete theo đối tượng Nhân viên hoặc Phòng ban'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Phòng ban' && department === '') {
           this.error = 'Vui lòng lựa chọn Phòng ban'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
         if (object === 'Nhân viên' && employeeCode === '') {
           this.error = 'Vui lòng lựa chọn Mã nhân viên'
-          this.$store.dispatch('showSnackbar', this.error)
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
           return; 
         }
-        const success = await this.$store.dispatch("handleWorkingCalendar", item)
-        if (success) this.dialog.show = false
+        await this.$store.dispatch("handleWorkingCalendar", item)
+        this.$store.dispatch('showSnackbar', {color: 'success',message: 'Lịch làm việc đang được xóa'})
+        this.dialog.show = false
         this.onPageLoad()
       },
-      uploadXlsx() {
-        if (!this.selectXlsx) {
-          console.log("Please upload a xlsx file")
-          return;
-        }
-        if (this.selectXlsx) {
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            /* Parse data */
-            const bstr = e.target.result;
-            const wb = XLSX.read(bstr, { type: "binary" });
-            /* Get first worksheet */
-            const wsname = wb.SheetNames[0];
-            const ws = wb.Sheets[wsname];
-            /* Convert array of arrays */
-            const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-              
-            console.log(data);
-          };
+      async importWorkingCalendar() {
+        if (!this.$refs.workingCalendarForm.validate()) return
+        const item = Utils.getFormValues(this.workingCalendarForm)
+        item.type = 'Import'
+        const fromDateFormat = new Date(item.fromDate)
+        const toDateFormat = new Date(item.toDate)
+        const object = item.object
+        const department = (item.department) ? item.department : ''
 
+        if (fromDateFormat > toDateFormat) {
+          this.error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+          return; 
+        }
+        if (object === 'Phòng ban' && department === '') {
+          this.error = 'Vui lòng lựa chọn Phòng ban'
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+          return; 
+        }
+        if (!this.selectXlsx) {
+          this.error = 'Vui lòng upload file xlsx'
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+          return;
+        } else {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            try {
+              /* Parse data */
+              const bstr = e.target.result;
+              const wb = XLSX.read(bstr, { type: 'binary' });
+              /* Get first worksheet */
+              const wsname = wb.SheetNames[0];
+              const ws = wb.Sheets[wsname];
+              /* Convert array of arrays */
+              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
+              item.importData = data;
+              await this.$store.dispatch('handleWorkingCalendar', item);
+              this.dialogImport.show = false;
+              this.$store.dispatch('showSnackbar', {color: 'success',message: 'Lịch làm việc đang được import'})
+              this.selectXlsx = null;
+              this.onPageLoad();
+            } catch (error) {
+              console.error('Error while processing XLSX file:', error);
+            }
+          };
           reader.readAsBinaryString(this.selectXlsx);
         }
-        this.selectXlsx = null;
       },
     },
     watch:{

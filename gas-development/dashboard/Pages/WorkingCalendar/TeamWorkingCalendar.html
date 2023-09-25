@@ -1,5 +1,34 @@
+
 <script>
   const TeamWorkingCalendar = {
+    data: () => ({
+    // selectedDate: '',
+    //   resources: [
+    //     { label: 'John' },
+    //     { label: 'Mary' },
+    //     { label: 'Susan' },
+    //     { label: 'Olivia' },
+    //     { label: 'Board Room' },
+    //     { label: 'Room-1' },
+    //     { label: 'Room-2' }
+    //   ]
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+        workingCalendar: 'workingCalendar',
+        workingCalendarRequests: 'workingCalendarRequests',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+        workingCalendarFilter: "workingCalendarFilter",
+      }),
+    },
+    methods: {
+    },
     template: `
       <?!= include_('dashboard/Pages/WorkingCalendar/TeamWorkingCalendar_template.html'); ?>
       `

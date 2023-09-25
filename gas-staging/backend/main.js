@@ -203,6 +203,7 @@ class App {
         dataUsers: {pages: 1, items: records.map(record => this.createItemObject(keys, record))},
         dataLeaveRequests: {pages: 1, items: leaveRequestRecords.map(record => this.createItemObject(leaveRequestKeys, record))},
         dataLeaveTypes: {pages: 1, items: leaveTypeRecords.map(record => this.createItemObject(leaveTypeKeys, record))},
+        app: {name: CONFIG.NAME, title: CONFIG.TITLE},
         success: true,
         message: `Đăng nhập thành công`}
     }

@@ -4,7 +4,7 @@
 //   WebAppUrl: "https://script.google.com/macros/s/AKfycbz2qDOGEP_3291KzE383vV4U7b6BPml9sSGFqdrct-V4_egnHHb4n4_KolzmmzMwOxQ3A/exec",
 //   INDEX: "index.html",
 //   NAME: "KYNA HR DASHBOARD",
-//   TITLE: "Welcome to HR Dashboard",
+//   TITLE: "Kyna HR Dashboard",
 //   PAGE_SIZE: 15,
 //   REVERSE: true,
 //   DATABASE : {
@@ -45,7 +45,7 @@
 //   WebAppUrl: "https://script.google.com/macros/s/AKfycbz5x7UHzb83hnXyPyDKsZbbc3HJ6_Xx5i4KILtmjm76gLvc5JzahZBBBToDL299nt379g/exec",
 //   INDEX: "index.html",
 //   NAME: "KYNA HR DASHBOARD - STAGING",
-//   TITLE: "Welcome to HR Dashboard - Staging",
+//   TITLE: "Kyna HR Dashboard - Staging",
 //   PAGE_SIZE: 15,
 //   REVERSE: true,
 //   DATABASE : {
@@ -85,7 +85,7 @@ const CONFIG = {
   WebAppUrl: "https://script.google.com/macros/s/AKfycbw90tw50FCBUTqENy3cW86u_dJgxuIz_rufRVz72r32UwDI6vnCZuzrqGemkIL5gIKVVg/exec",
   INDEX: "index.html",
   NAME: "KYNA HR DASHBOARD - DEVELOPMENT",
-  TITLE: "Welcome to HR Dashboard - Development",
+  TITLE: "Kyna HR Dashboard - Development",
   PAGE_SIZE: 15,
   REVERSE: true,
   DATABASE : {
