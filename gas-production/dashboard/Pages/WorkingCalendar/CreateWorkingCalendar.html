@@ -100,7 +100,9 @@ const CreateWorkingCalendar = {
         item.type = 'Create'
         const type = item.type
         const fromDateFormat = new Date(item.fromDate)
+        fromDateFormat.setHours(0, 0, 0, 0)
         const toDateFormat = new Date(item.toDate)
+        toDateFormat.setHours(0, 0, 0, 0)
         const object = item.object
         const department = (item.department) ? item.department : ''
         const employeeCode = (item.employeeCode) ? item.employeeCode : ''

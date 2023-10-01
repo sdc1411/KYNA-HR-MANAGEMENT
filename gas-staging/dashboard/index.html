@@ -1,12 +1,8 @@
-<script src="https://cdn.jsdelivr.net/npm/quasar@1.22.10/dist/quasar.ie.polyfills.umd.min.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/vue@2.x"></script>
 <!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100169/cdn.jsdelivr.net_npm_vue_2_gdsjmu.x"></script> -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/quasar@1.22.10/dist/quasar.umd.modern.min.js"></script> -->
-    
-<!-- <script src="https://cdn.jsdelivr.net/npm/@quasar/quasar-ui-qcalendar/dist/index.umd.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/quasar@1.15.23/dist/quasar.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@quasar/quasar-ui-qcalendar@3.4.1/dist/index.umd.min.js"></script>
 
-<!-- <script src="https://cdn.jsdelivr.net/npm/@quasar/quasar-ui-qcalendar@4.0.0-beta.16/dist/index.umd.min.js"></script> -->
 
  
 
@@ -20,7 +16,7 @@
 
 <script>
   const app = new Vue({
-    el: "#app",
+    el: "#q-app",
     
     created() {
       this.$store.dispatch("getDataLoginUser")
@@ -28,7 +24,10 @@
     },
     vuetify,
     store,
-    router
+    router,
+    components: {
+      'q-calendar': QCalendar
+    }
   })
 </script>
 

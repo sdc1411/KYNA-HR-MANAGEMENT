@@ -15,6 +15,13 @@ function saveMultipleProperties() {
     scriptProperties.setProperties({
       // 'SecretFirebase': '',
       // 'UrlFirebase': ''
+      // emailFirestore: '',
+      // keyFirestore: '',
+      // projectIdFirestore: '',
+      // serverTimeSheet: '',
+      // passwordTimeSheet: '',
+      // usernameTimeSheet: '',
+      // databaseTimeSheet: '',
     });
   } catch (err) {
     console.log('Failed with error %s', err.message);

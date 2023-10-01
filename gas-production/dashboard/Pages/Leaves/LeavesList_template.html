@@ -1,0 +1,40 @@
+<div>
+  <v-card flat
+    >
+    <v-spacer></v-spacer>
+      <v-card>
+        <v-card-title>
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-card-title>
+        <v-data-table
+          :headers="headers"
+          :items="leaveTrackingFilter"
+          :search="search"
+        >
+        <template v-slot:item.startDate="{ item }">
+          {{ item.startDate ? formatDate(item.startDate) : item.startDate}}
+        </template>
+        <template v-slot:item.endDate="{ item }">
+          {{ item.endDate ? formatDate(item.endDate) : item.endDate}}
+        </template>
+        <template v-slot:item.startShift="{ item }">
+          {{ item.startShift ? new Date(item.startShift).toLocaleTimeString() : item.startShift}}
+        </template>
+        <template v-slot:item.endShift="{ item }">
+          {{ item.endShift ? new Date(item.endShift).toLocaleTimeString() : item.endShift}}
+        </template>
+        <template v-slot:item.createdAt="{ item }">
+          {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : item.createdAt}}
+        </template>
+        </v-data-table>
+      </v-card>
+    <v-spacer></v-spacer>
+  </v-card>
+</div>

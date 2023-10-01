@@ -8,6 +8,8 @@
  <?!= include_('dashboard/Pages/WorkingCalendar/TeamWorkingCalendar.html'); ?>
  <?!= include_('dashboard/Pages/WorkingCalendar/CreateWorkingShift.html'); ?>
  <?!= include_('dashboard/Pages/WorkingCalendar/CreateWorkingCalendar.html'); ?>
+ <?!= include_('dashboard/Pages/WorkingCalendar/GetTimeSheet.html'); ?>
+ <?!= include_('dashboard/Pages/Leaves/LeavesList.html'); ?>
 
 <script>
 
@@ -154,6 +156,8 @@
         if (!this.$refs.form.validate()) return
         const item = {
           id: this.form.id.value,
+          employeeName: this.form.employeeName.value,
+          department: this.form.department.value,
           comments: this.comments.value,
           assignedToEmails: this.form.assignedToEmails.value,
           type: this.dialog.type,
@@ -482,6 +486,7 @@
         { id: 2, name: "Lịch làm việc Team", route: "/WorkingCalendar/TeamWorkingCalendar"},
         { id: 3, name: "Tạo lịch làm việc", route: "/WorkingCalendar/CreateWorkingCalendar"},
         { id: 4, name: "Tạo ca làm việc", route: "/WorkingCalendar/CreateWorkingShift"},
+        { id: 5, name: "Tải dữ liệu chấm công", route: "/WorkingCalendar/GetTimeSheet"},
       ]
     }),
     template: `
@@ -495,13 +500,15 @@
     { path: '/Login', component: LoginView, meta: {icon: "mdi-login", title: "Login"}},
     { path: '/SentLeaves', component: SentLeaves, meta: {title: "Đơn đã gửi"} },
     { path: '/ReceivedLeaves', component: ReceivedLeaves, meta: {title: "Đơn đã nhận"} },
+    { path: '/LeavesList', component: LeavesList, meta: {title: "Lịch nghỉ phép Team"} },
     { path: '/Users', component: Users, meta: {icon: "mdi-microsoft-teams", title: "Danh sách Team Users"} },
     { path: '/Profile', component: UserProfile, meta: {icon: "mdi-account", title: "Hồ sơ nhân viên"} },
     { path: "/WorkingCalendar", component: WorkingCalendar, prop: true, meta:{icon:"mdi-calendar-account",title: "Lịch làm việc"} , children: [
       { path: "", component: SelfWorkingCalendar, meta:{icon:"mdi-calendar-account",title: "Lịch làm việc cá nhân"} },
       { path: "TeamWorkingCalendar", component: TeamWorkingCalendar },
       { path: "CreateWorkingCalendar", component: CreateWorkingCalendar },
-      { path: "CreateWorkingShift", component: CreateWorkingShift }
+      { path: "CreateWorkingShift", component: CreateWorkingShift },
+      { path: "GetTimeSheet", component: GetTimeSheet }
       ]},
     { path: '/ResignHandover', component: ResignHandover, meta: {icon: "mdi-list-status", title: "Bàn giao nghỉ việc"} },
   

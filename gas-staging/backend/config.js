@@ -15,6 +15,7 @@
 //     RESIGNS: '11IvmHwOXEArlnUavgjFFl7pJWlFuBgVcZPQ982B6ej4',
 //     EMPLOYEE_CONTRACT_MANAGEMENT: '1oekZ3nVo6qlWVnYXi2y6C9EcKFB3woPcjlbLfJ1d838',
 //     REVIEW: '1X-iY66XE3LtqIZhlEeQ9aVSa1FYe1xdAKaB4wyYhhZc',
+//     TIME_SHEET: '175gT_Rv8j4wE15GD-na904RhuYdZH6XnckCF6spZAGI',
 //   },
 //   SHEET_NAME : {
 //     USER: 'users',
@@ -30,6 +31,9 @@
 //     APPROVED: "Approved",
 //     REJECTED: "Rejected",
 //     COMPLETED: "Completed",
+//   },
+//   NOTIFICATION_APPROVAL: {
+//     Template: 'approvals/notification_approval.html',
 //   },
 //   EMAIL: {
 //     NotificationEmail: 'cb@kynaforkids.vn',
@@ -56,6 +60,7 @@
 //     RESIGNS: '1f4ol3Mi6veGYG5zzBcitCo5jMRqhgEzevLqrenhxR28',
 //     EMPLOYEE_CONTRACT_MANAGEMENT: '1oekZ3nVo6qlWVnYXi2y6C9EcKFB3woPcjlbLfJ1d838',
 //     REVIEW: '1J2HDTj7r7AYB9oJmKoN6p_z87CejRXSgYXoUdno04tg',
+//     TIME_SHEET: '1oBrsmSir1US2KNDowwtq_cd7fHzR6GB3_UrVgZXrVBo',
 //   },
 //   SHEET_NAME : {
 //     USER: 'users',
@@ -71,6 +76,9 @@
 //     APPROVED: "Approved",
 //     REJECTED: "Rejected",
 //     COMPLETED: "Completed",
+//   },
+//   NOTIFICATION_APPROVAL: {
+//     Template: 'approvals/notification_approval.html',
 //   },
 //   EMAIL: {
 //     NotificationEmail: 'diepmai.tech@gmail.com',
@@ -96,6 +104,7 @@ const CONFIG = {
     RESIGNS: '1f4ol3Mi6veGYG5zzBcitCo5jMRqhgEzevLqrenhxR28',
     EMPLOYEE_CONTRACT_MANAGEMENT: '1oekZ3nVo6qlWVnYXi2y6C9EcKFB3woPcjlbLfJ1d838',
     REVIEW: '1J2HDTj7r7AYB9oJmKoN6p_z87CejRXSgYXoUdno04tg',
+    TIME_SHEET: '1oBrsmSir1US2KNDowwtq_cd7fHzR6GB3_UrVgZXrVBo',
   },
   SHEET_NAME : {
     USER: 'users',
@@ -111,6 +120,9 @@ const CONFIG = {
     APPROVED: "Approved",
     REJECTED: "Rejected",
     COMPLETED: "Completed",
+  },
+  NOTIFICATION_APPROVAL: {
+    Template: 'approvals/notification_approval.html',
   },
   EMAIL: {
     NotificationEmail: 'diepmai.tech@gmail.com',

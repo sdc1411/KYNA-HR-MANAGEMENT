@@ -585,5 +585,30 @@
     }
   }
 
+  Forms.TimeSheetForm = {
+    fromDate: {
+      label: "Từ ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    toDate: {
+      label: "Đến ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    otherCondition: {
+      label: "Điều kiện lọc khác",
+      value: null
+    },
+    top: {
+      label: "Số lượng records",
+      value: null,
+    },
+  }
+
 </script>
 

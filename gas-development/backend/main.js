@@ -121,6 +121,7 @@ class App {
     this.dbEmployeeInformation = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_INFORMATION)
     this.dbResigns = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS)
     this.dbEmployeeContractManagement = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT)
+    this.dbTimeSheet = SpreadsheetApp.openById(CONFIG.DATABASE.TIME_SHEET)
     this.reverse = CONFIG.REVERSE
     this.headerId = 'id'
   }
@@ -238,10 +239,29 @@ class App {
     }
   }
 
+  sendNotificationApproval(sheetName, id, employeeName, department, pendingOn) {
+    if (sheetName === 'leaveRequests') {
+      const title = 'Đơn xin nghỉ phép, WFH'
+      const template = HtmlService.createTemplateFromFile(CONFIG.NOTIFICATION_APPROVAL.Template)
+      template.id = id
+      template.employeeName = employeeName
+      template.department = department
+      template.title = title
+      template.url = CONFIG.WebAppUrl
+      
+      const subject = `Approval Pending - ${title} - ${employeeName} - ${department}`
+
+      const options = {
+        htmlBody: template.evaluate().getContent()
+      }
+      GmailApp.sendEmail(pendingOn, subject, "", options);
+    } else {return}
+  }
+
 
   getItems({ page, pageSize, database ,sheetName, filters }) {
   
-    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement :  null
+    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'timeSheetDatabase') ? this.dbTimeSheet :  null
     const ws = ss.getSheetByName(sheetName)
     
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
@@ -268,7 +288,7 @@ class App {
   }
 
   createItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : null
+    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'timeSheetDatabase') ? this.dbTimeSheet : null
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -279,6 +299,10 @@ class App {
     ws.getRange(records.length + 2, 1, 1, values.length).setValues([values])
     if (database === 'leaveDaysDatabase') {
       pushLeaveTracking()
+      console.log(item)
+      if (item.pendingOn) {
+        this.sendNotificationApproval(sheetName,item.id,item.employeeName,item.department,item.pendingOn)
+      }
     }
     return {
       success: true,
@@ -367,6 +391,9 @@ class App {
     // console.log(item)
     if (database === 'leaveDaysDatabase') {
       pushLeaveTracking()
+      if (item.pendingOn && (item.type === 'Approve' || item.type === 'Forward')) {
+        this.sendNotificationApproval(sheetName,item.id,item.employeeName,item.department,item.pendingOn)
+      }
     }
     return {
       success: true,

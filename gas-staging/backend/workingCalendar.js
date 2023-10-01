@@ -77,7 +77,7 @@ class GenerateWorkingCalendar {
         docType: employee.docType,
         applyFrom: employee.applyFrom,
         applyTo: employee.applyTo,
-        workingTimeTypeName: 'Ngày làm việc',
+        workingTimeTypeName: 'Lịch làm việc',
         workingTimeType: employee.workingTimeType,
         startShiftAllDay: matchingWorkingTimeType[3],
         endShiftAllDay: matchingWorkingTimeType[4],

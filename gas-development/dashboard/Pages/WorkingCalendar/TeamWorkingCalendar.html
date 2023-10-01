@@ -2,35 +2,231 @@
 <script>
   const TeamWorkingCalendar = {
     data: () => ({
-    // selectedDate: '',
-    //   resources: [
-    //     { label: 'John' },
-    //     { label: 'Mary' },
-    //     { label: 'Susan' },
-    //     { label: 'Olivia' },
-    //     { label: 'Board Room' },
-    //     { label: 'Room-1' },
-    //     { label: 'Room-2' }
-    //   ]
+      page: 1,
+      pageSize: -1,
+      selectedDate: '',
+      // resources: [
+      //   { employeeCode: 'K-0001',employeeName: 'John'},
+      //   { employeeCode: 'K-0002',employeeName: 'Linda'},
+      //   { employeeCode: 'K-0003',employeeName: 'Mary'},
+      //   { employeeCode: 'K-0004',employeeName: 'Susan'},
+      //   { employeeCode: 'K-0005',employeeName: 'Olivia'}
+      // ],
+      // dataEvents : [
+      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-25', endDate: '2023-09-30', time: '08:00', endShift: '17:30', title: 'working', days: 4 ,bgcolor: 'green' },
+      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-26', endDate: '2023-09-26', time: '08:00', endShift: '17:30', title: 'nghỉ phép', duration: 200, bgcolor: 'orange' },
+      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-29', endDate: '2023-09-29', time: '08:00', endShift: '17:30', title: 'nghỉ ốm', duration: 200, bgcolor: 'blue' },
+      //   { employeeCode: 'K-0002',employeeName: 'Linda', date: '2023-09-26', endDate: '2023-09-30', time: '08:00', endShift: '17:30', day: 3, title: 'nghỉ phép', days: 4, bgcolor: 'orange' },
+      //   { employeeCode: 'K-0003',employeeName: 'Mary', date: '2023-09-29', endDate: '2023-09-29', time: '08:00', endShift: '17:30', title: 'working', duration: 300 , bgcolor: 'green' },
+      //   { employeeCode: 'K-0004',employeeName: 'Susan',date: '2023-09-30', endDate: '2023-09-30', time: '12:00', endShift: '22:00', title: 'working', duration: 350 , bgcolor: 'green' },
+      // ]
     }),
     computed: {
       ...Vuex.mapState({
         loading: "loading",
         loginUser: "loginUser",
         statusColor: 'statusColor',
-        workingCalendar: 'workingCalendar',
-        workingCalendarRequests: 'workingCalendarRequests',
       }),
       ...Vuex.mapGetters({
         isAdmin: "isAdmin",
         isHR: "isHR",
-        workingCalendarFilter: "workingCalendarFilter",
+        resources: 'userTeamFilter',
+        workingCalendarTeamFilter: 'workingCalendarTeamFilter',
       }),
     },
     methods: {
+      // async onPageLoad(){
+      //   this.$store.dispatch("getItems", {
+      //   database: "workingCalendarDatabase", 
+      //   sheetName: "workingCalendar", 
+      //   page: this.page, 
+      //   pageSize: this.pageSize,
+      //   filters: {
+      //     dapartment: this.loginUser.department,
+      //     },
+      //   })
+      //   this.$store.dispatch("getItems", {
+      //   database: "leaveDaysDatabase", 
+      //   sheetName: "leaveTracking", 
+      //   page: this.page, 
+      //   pageSize: this.pageSize,
+      //   filters: {
+      //     dapartment: this.loginUser.department,
+      //     },
+      //   })
+      //   this.$store.dispatch("getItems", {
+      //   database: "timeSheetDatabase", 
+      //   sheetName: "timeSheet", 
+      //   page: this.page, 
+      //   pageSize: this.pageSize,
+      //   filters: {
+      //     dapartment: this.loginUser.department,
+      //     },
+      //   })
+      // },
+      calendarToday () {
+        this.$refs.calendar.moveToToday()
+      },
+      calendarNext () {
+        this.$refs.calendar.next()
+      },
+      calendarPrev () {
+        this.$refs.calendar.prev()
+      },
+      isCssColor (color) {
+        return !!color && !!color.match(/^(#|(rgb|hsl)a?\()/)
+      },
+      badgeClasses (event, type) {
+        const cssColor = this.isCssColor(event.bgcolor)
+        const isHeader = type === 'header'
+        return {
+          [`text-white bg-${event.bgcolor}`]: !cssColor,
+          'full-width': !isHeader && (!event.side || event.side === 'full'),
+          'left-side': !isHeader && event.side === 'left',
+          'right-side': !isHeader && event.side === 'right'
+        }
+      },
+      badgeStyles (event, type, timeStartPos, timeDurationHeight) {
+        const s = {}
+        if (this.isCssColor(event.bgcolor)) {
+          s['background-color'] = event.bgcolor
+          s.color = luminosity(event.bgcolor) > 0.5 ? 'black' : 'white'
+        }
+        if (timeStartPos) {
+          s.top = timeStartPos(event.time) + 'px'
+        }
+        if (timeDurationHeight) {
+          s.height = timeDurationHeight(event.duration) + 'px'
+        }
+        s['align-items'] = 'flex-start'
+        return s
+      },
+      getEvents (date, employeeCode) {
+        const dateFormat = new Date(date).setHours(0,0,0,0)
+        const items = this.workingCalendarTeamFilter.filter((item) => item.employeeCode === employeeCode && new Date(item.startDate).setHours(0,0,0,0) <= dateFormat && new Date(item.endDate).setHours(0,0,0,0) >= dateFormat)
+        const dataEvents = [];
+        items.forEach(item => {
+          const a1 = new Date(item.startDate)
+          const a1Year = a1.getFullYear()
+          const a1Month = ('0' + (a1.getMonth() + 1)).slice(-2);
+          const a1Date = ('0' + a1.getDate()).slice(-2);
+          const startDate = a1.setHours(0,0,0,0)
+          const startDateFormat = a1Year + '-' + a1Month + '-' + a1Date;
+          const b1 = new Date(item.endDate)
+          const b1Year = b1.getFullYear()
+          const b1Month = ('0' + (b1.getMonth() + 1)).slice(-2);
+          const b1Date = ('0' + b1.getDate()).slice(-2);
+          const endDate = b1.setHours(0,0,0,0)
+          const endDateFormat = b1Year + '-' + b1Month + '-' + b1Date;
+          const a2 = new Date(item.startShift)
+          const a2Hour = ('0' + a2.getHours()).slice(-2);
+          const a2Minute = ('0' + a2.getMinutes()).slice(-2);
+          const startShiftFormat = a2Hour + ':' + a2Minute;
+          const b2 = new Date(item.endShift)
+          if (startDate === endDate) {
+            const duration = Math.abs((b2.getTime() - a2.getTime()) / (1000 * 60));
+            const event = {
+            title: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
+            date: startDateFormat,
+            endDate: endDateFormat,
+            time: startShiftFormat,
+            bgcolor: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
+            duration: duration
+          };
+          dataEvents.push(event);
+          } else if (startDate < endDate) {
+            const a1 = new Date(item.startDate)
+            const a1Year = a1.getFullYear()
+            const a1Month = ('0' + (a1.getMonth() + 1)).slice(-2);
+            const a1Date = ('0' + a1.getDate()).slice(-2);
+            const startDate = new Date(a1Year,a1.getMonth, a1.getDate(),0,0)
+            const startDateFormat = a1Year + '-' + a1Month + '-' + a1Date;
+            const b1 = new Date(item.endDate)
+            const b1Year = b1.getFullYear()
+            const b1Month = ('0' + (b1.getMonth() + 1)).slice(-2);
+            const b1Date = ('0' + b1.getDate()).slice(-2);
+            const endDate = new Date(b1Year,b1.getMonth, b1.getDate(),0,0)
+            const endDateFormat = b1Year + '-' + b1Month + '-' + b1Date;
+            const duration = b1.getTime() - a1.getTime()
+            const days = Math.floor(duration / (1000 * 60 * 60 * 24))
+            const event = {
+            title: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
+            date: startDateFormat,
+            endDate: endDateFormat,
+            bgcolor: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
+            days: days 
+            }
+            dataEvents.push(event)
+          }
+          
+        });
+    
+        const currentDate = QCalendar.parseTimestamp(date)
+        const events = []
+        for (let i = 0; i < dataEvents.length; ++i) {
+          let added = false
+          if (dataEvents[i].date === date) {
+            if (dataEvents[i].time) {
+              if (events.length > 0) {
+                // check for overlapping times
+                const startTime = QCalendar.parseTimestamp(dataEvents[i].date + ' ' + dataEvents[i].time)
+                const endTime = QCalendar.addToDate(startTime, { minute: dataEvents[i].duration })
+                for (let j = 0; j < events.length; ++j) {
+                  if (events[j].time) {
+                    const startTime2 = QCalendar.parseTimestamp(events[j].date + ' ' + events[j].time)
+                    const endTime2 = QCalendar.addToDate(startTime2, { minute: events[j].duration })
+                    if (QCalendar.isBetweenDates(startTime, startTime2, endTime2) || QCalendar.isBetweenDates(endTime, startTime2, endTime2)) {
+                      events[j].side = 'left'
+                      dataEvents[i].side = 'right'
+                      events.push(dataEvents[i])
+                      added = true
+                      break
+                    }
+                  }
+                }
+              }
+            }
+            if (!added) {
+              dataEvents[i].side = undefined
+              events.push(dataEvents[i])
+            }
+          }
+          else if (dataEvents[i].days) {
+            // check for overlapping dates
+            const startDate = QCalendar.parseTimestamp(dataEvents[i].date)
+            const endDate = QCalendar.addToDate(startDate, { day: dataEvents[i].days })
+            if (QCalendar.isBetweenDates(currentDate, startDate, endDate)) {
+              events.push(dataEvents[i])
+              added = true
+            }
+          }
+        }
+        // console.log(events)
+        return events
+      },
+      getEventColor (event) {
+          const colorMap = {
+          'Lịch làm việc': 'cyan',
+          'Nghỉ phép năm': 'indigo',
+          'Làm việc tại nhà': 'deep-purple',
+          'Nghỉ bù': 'accent',
+          'Nghỉ không lương': 'green',
+          'Chấm công vân tay': 'orange'
+        };
+        return colorMap[event.name] || 'grey darken-1';
+      },
     },
+    // watch:{
+    //   page: function(){
+    //     this.onPageLoad()
+    //   },
+    // },
+    // created(){
+    //   this.onPageLoad()
+    // },
     template: `
       <?!= include_('dashboard/Pages/WorkingCalendar/TeamWorkingCalendar_template.html'); ?>
       `
   }
 </script>
+
