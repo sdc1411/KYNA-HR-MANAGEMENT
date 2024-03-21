@@ -1,90 +1,47 @@
 <div>
-    <br>
+  <br>
   <v-spacer></v-spacer>
-  <v-sheet
-    tile
-    height="54"
-    class="d-flex"
-  >
-    <v-btn
-      icon
-      class="ma-2"
-      @click="$refs.calendar.prev()"
-    >
+  <v-sheet tile height="54" class="d-flex">
+    <v-btn rounded color="secondary" dark class="ma-2" v-if="$refs.calendar">{{ $refs.calendar.title }}</v-btn>
+    <v-btn class="btn" rounded depressed small class="ma-2">Ngày công chuẩn: {{getWorkingCalendarDay}}</v-btn>
+    <v-btn class="btn" rounded depressed small class="ma-2">Chấm công: {{getTimeSheetDay}}</v-btn>
+    <v-btn class="btn" rounded depressed small class="ma-2">Làm việc tại nhà: {{getWFHDay}}</v-btn>
+    <v-btn class="btn" rounded depressed small class="ma-2">Nghỉ phép: {{getLeavesDay}}</v-btn>
+    <v-btn class="btn" rounded depressed small class="ma-2">Nghỉ không lương: {{getNonSalaryLeavesDay - getWorkingCalendarDay - getWFHDay - getLeavesDay - getTimeSheetDay}}</v-btn>
+    <v-btn rounded class="ma-2">Tổng cộng: {{(getLeavesDay + getWFHDay + getTimeSheetDay)}}/{{getWorkingCalendarDay}} ngày công</v-btn>
+  </v-sheet>
+  <v-spacer></v-spacer>
+  <br>
+  <v-sheet tile height="54" class="d-flex">
+    <v-btn icon class="ma-2" @click="$refs.calendar.prev()">
       <v-icon>mdi-chevron-left</v-icon>
     </v-btn>
-    <v-select
-      v-model="type"
-      :items="types"
-      dense
-      outlined
-      hide-details
-      class="ma-2"
-      label="Chọn kiểu hiển thị lịch"
-    ></v-select>
-    <v-select
-      v-model="mode"
-      :items="modes"
-      dense
-      outlined
-      hide-details
-      label="Chọn kiểu hiển thị sự kiện"
-      class="ma-2"
-    ></v-select>
-    <v-select
-      v-model="weekday"
-      :items="weekdays"
-      dense
-      outlined
-      hide-details
-      label="Chọn tuần bắt đầu"
-      class="ma-2"
-    ></v-select>
+    <v-select v-model="type" :items="types" dense outlined hide-details class="ma-2" label="Chọn kiểu hiển thị lịch">
+    </v-select>
+    <v-select v-model="mode" :items="modes" dense outlined hide-details label="Chọn kiểu hiển thị sự kiện" class="ma-2">
+    </v-select>
+    <v-select v-model="weekday" :items="weekdays" dense outlined hide-details label="Chọn tuần bắt đầu" class="ma-2">
+    </v-select>
     <v-spacer></v-spacer>
-    <v-btn
-      icon
-      class="ma-2"
-      @click="$refs.calendar.next()"
-    >
+    <v-btn icon class="ma-2" @click="$refs.calendar.next()">
       <v-icon>mdi-chevron-right</v-icon>
     </v-btn>
   </v-sheet>
+  <v-spacer></v-spacer>
   <v-sheet height="600">
-    <v-calendar
-      ref="calendar"
-      v-model="value"
-      :weekdays="weekday"
-      :type="type"
-      :events="convertItemsToEvents(workingCalendarFilter)"
-      @click:event="showEvent"
-      @click:more="viewDay"
-      @click:date="viewDay"
-      :event-overlap-mode="mode"
-      :event-overlap-threshold="30"
-      
-    ></v-calendar>
-    <v-menu
-      v-model="selectedOpen"
-      :close-on-content-click="false"
-      :activator="selectedElement"
-      offset-x
-    >
-      <v-card
-        color="grey lighten-4"
-        min-width="150px"
-        flat
-      >
-        <v-toolbar
-          :color="selectedEvent.color"
-          dark
-        >
+    <v-calendar ref="calendar" v-model="value" :weekdays="weekday" :type="type"
+      :events="convertItemsToEvents(workingCalendarFilter)" @click:event="showEvent" @click:more="viewDay"
+      @click:date="viewDay" @change="updateMonthYear" :event-overlap-mode="mode" :event-overlap-threshold="30"></v-calendar>
+    <v-menu v-model="selectedOpen" :close-on-content-click="false" :activator="selectedElement" offset-x>
+      <v-card color="grey lighten-4" min-width="150px" flat>
+        <v-toolbar :color="selectedEvent.color" dark>
           <v-toolbar-title v-html="selectedEvent.name"></v-toolbar-title>
-          
+
         </v-toolbar>
         <v-card-text>
           <span v-html="selectedEvent.details"></span>
         </v-card-text>
-    
+
       </v-card>
     </v-menu>
   </v-sheet>

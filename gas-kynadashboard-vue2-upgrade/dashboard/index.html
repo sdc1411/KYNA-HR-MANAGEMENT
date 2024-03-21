@@ -1,0 +1,36 @@
+<script src="https://cdn.jsdelivr.net/npm/vue@2.x"></script>
+<!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100169/cdn.jsdelivr.net_npm_vue_2_gdsjmu.x"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/quasar@1.15.23/dist/quasar.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@quasar/quasar-ui-qcalendar@3.4.1/dist/index.umd.min.js"></script>
+
+
+ 
+
+ <?!= include_("utils.html"); ?>
+ <?!= include_("dashboard/forms.html"); ?>
+ <?!= include_("dashboard/vuetify.html"); ?>
+ <?!= include_("dashboard/store.html"); ?>
+ <?!= include_("dashboard/components.html"); ?>
+ <?!= include_("dashboard/router.html"); ?>
+ <?!= include_("dashboard/css.html"); ?>
+
+<script>
+  const app = new Vue({
+    el: "#q-app",
+    
+    created() {
+      this.$store.dispatch("getDataLoginUser")
+      
+    },
+    vuetify,
+    store,
+    router,
+    components: {
+      'q-calendar': QCalendar
+    }
+  })
+</script>
+
+
+
+

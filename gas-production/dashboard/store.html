@@ -2,6 +2,10 @@
 <!-- <script src="https://res.cloudinary.com/dpwmd0kym/raw/upload/v1692100272/unpkg.com_vuex_3.6.2_dist_vuex_g4fkb0.js"></script> -->
 
 <script>
+  function filterItemsByRole(items, role, department) {
+    return (role === 'Admin' || role === 'HR') ? items : items.filter(item => item.department === department);
+  }
+  
   const store = new Vuex.Store({
     state: {
       barColor: 'rgba(0, 0, 0, .8), rgba(0, 0, 0, .8)',
@@ -46,6 +50,7 @@
       leaveTypes: {items: [], pages: 1},
       leaveRequests: {items: [], pages: 1},
       workingCalendar: {items: [], pages: 1},
+      workingCalendarData: {items: [], pages: 1},
       leaveTracking: {items: [], pages: 1},
       resignEmployeeHandover: {items: [], pages: 1},
       workingTimeType: {items: [], pages: 1},
@@ -71,24 +76,29 @@
         return (state.loginUser.employee_email === "long.nguyen@kynaforkids.vn" || state.loginUser.level === "C-level" || state.loginUser.level === "Director" || state.loginUser.level === "Manager" || state.loginUser.system_role === "HR" || state.loginUser.system_role === "Admin") ? true : false
       },
       assignedToEmails: function(state){
-        return (state.loginUser.level == 'Manager' || state.loginUser.level == 'Director' || state.loginUser.level == 'C-level' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') 
-        ? state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.employee_email) 
-        : state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.employee_email)
+        const listEmailsKey = state.users.items.filter(item => item.employee_email !== '' && item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.employee_email) 
+        const listEmails = state.users.items.filter(item => item.employee_email !== '' && item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.employee_email)
+        const emailCEO = state.users.items.filter(item => item.employee_email === 'tram@kynaforkids.vn').map(item => item.employee_email)
+        const emailCAO = state.users.items.filter(item => item.employee_email === 'huong.nguyen@kynaforkids.vn').map(item => item.employee_email)
+        listEmails.push(emailCEO[0],emailCAO[0])
+        if (state.loginUser.level == 'Manager' || state.loginUser.level == 'Director' || state.loginUser.level == 'C-level' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') {
+          return listEmailsKey
+        } else return listEmails
       },
       listEmployeeName: function(state){
         return (state.loginUser.system_role == 'Manager' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') 
-        ? state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.cv_name) 
-        : state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.cv_name)
+        ? state.users.items.filter(item => item.cv_name !== '' && item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.cv_name) 
+        : state.users.items.filter(item => item.cv_name !== '' && item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.cv_name)
       },
       listEmployeeCode: function(state){
         return (state.loginUser.system_role == 'Manager' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin') 
-        ? state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.Employee_code) 
-        : state.users.items.filter(item => item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.Employee_code)
+        ? state.users.items.filter(item => item.Employee_code !== '' && item.employee_email !== state.loginUser.employee_email && item.level == 'Supervisor' || item.level == 'Director' || item.level == 'Manager' || item.level == 'C-level' ).map(item => item.Employee_code) 
+        : state.users.items.filter(item => item.Employee_code !== '' && item.employee_email !== state.loginUser.employee_email && item.department == state.loginUser.department).map(item => item.Employee_code)
       },
       listDepartments: function(state){
         return (state.loginUser.system_role == 'Manager' || state.loginUser.system_role == 'HR' || state.loginUser.system_role == 'Admin')
-        ? state.users.items.map(item => item.department)
-        : state.users.items.filter(item => item.department == state.loginUser.department).map(item => item.department)
+        ? state.users.items.filter(item => item.department !== '').map(item => item.department)
+        : state.users.items.filter(item => item.department == state.loginUser.department && item.department !== '').map(item => item.department)
       },
       listLeaveTypes: function(state){
         return state.leaveTypes.items.map(item => item.leaveTypeName)
@@ -106,37 +116,31 @@
         return state.leaveRequests.items.filter(item => item.requestedBy == state.loginUser.employee_email && item.status === 'Pending').length
       },
       workingCalendarFilter: function(state){
-        const workingCalendar = state.workingCalendar.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
-        const leaveTracking = state.leaveTracking.items.filter(item => item.employeeCode == state.loginUser.Employee_code)
-        leaveTracking.forEach((item) => {
-          workingCalendar.push(item)
-        })
-        const timeSheet = state.timeSheet.items.filter(item => item.employeeCode == state.loginUser.Employee_code && item.idStatus === 'Approved')
-        timeSheet.forEach((item) => {
-          workingCalendar.push(item)
-        })
-        return workingCalendar
+        const { Employee_code } = state.loginUser
+        const workingCalendarData = state.workingCalendarData.items.filter(item => item.employeeCode === Employee_code && item.idStatus === 'Approved')
+        return workingCalendarData
       },
       workingCalendarTeamFilter: function(state){
-        const workingCalendar = state.workingCalendar.items.filter(item => item.idStatus === 'Approved')
-        const leaveTracking = state.leaveTracking.items.filter(item => item.idStatus == 'Approved')
-        leaveTracking.forEach((item) => {
-          workingCalendar.push(item)
-        })
-        const timeSheet = state.timeSheet.items.filter(item => item.idStatus === 'Approved')
-        timeSheet.forEach((item) => {
-          workingCalendar.push(item)
-        })
-        return workingCalendar
+        const { system_role, department } = state.loginUser
+        const workingCalendarData = filterItemsByRole(state.workingCalendarData.items, system_role, department).filter(item => item.idStatus === 'Approved')
+       return workingCalendarData
       },
       userTeamFilter: function(state){
-        return (state.loginUser.system_role == 'Admin' || state.loginUser.system_role == 'HR') ? state.users.items : state.users.items.filter(item => item.department === state.loginUser.department)
+        const { system_role, department } = state.loginUser;
+        const userTeamFilter = [
+          ...filterItemsByRole(state.users.items, system_role, department),
+        ];
+        return userTeamFilter;
       },
       leaveTrackingFilter: function(state){
-        return (state.loginUser.system_role == 'Admin' || state.loginUser.system_role == 'HR') ? state.leaveTracking.items : state.leaveTracking.items.filter(item => item.department === state.loginUser.department)
+        const { system_role, department } = state.loginUser
+        const leaveTrackingFilter = [
+          ...filterItemsByRole(state.leaveTracking.items, system_role, department),
+        ];
+        return leaveTrackingFilter;
       },
       resignList: function(state){
-        return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR' || state.loginUser.employee_email === 'cb@kynaforkids.vn') ? state.resignEmployeeHandover.items : state.resignEmployeeHandover.items.filter(item => item.department === state.loginUser.department)
+        return (state.loginUser.system_role === 'Admin' || state.loginUser.system_role === 'HR' || state.loginUser.employee_email === 'long.nguyen@kynaforkids.vn') ? state.resignEmployeeHandover.items : state.resignEmployeeHandover.items.filter(item => item.department === state.loginUser.department)
       },
     },
     mutations: {
@@ -165,8 +169,7 @@
       closeSnackbar(state){
         state.snackbar.show = false
       },
-      },
-
+    },
     actions: {
       async showSnackbar({commit},{color, message}) {
         commit("showSnackbar", {color: color, message: message})
@@ -353,6 +356,34 @@
         processRequest();
         return Promise.resolve(true);
       },
+
+      // async getWorkingCalendarData({commit}, params){
+      //   commit("startLoading")
+      //   // console.log(params)
+      //   try {
+      //     const data = await Utils.request("getAllWorkingCalendarFromFirebase", params)
+      //     commit("updateState", {key: "workingCalendarData", value: data})
+      //     // console.log(data)
+      //     commit("stopLoading")
+      //   }catch(err){
+      //     commit("showSnackbar", {color: "error", message: err.message})
+      //   }
+      // },
+
+      async getWorkingCalendarData({commit}, params){
+        commit("startLoading")
+        const processRequest = async () => {
+          try {
+            const data = await Utils.request("getWorkingCalendarData", params)
+            commit("updateState", {key: "workingCalendarData", value: data})
+            commit("stopLoading")
+          }catch(err){
+            commit("showSnackbar", {color: "error", message: err.message})
+          }
+        }
+        processRequest();
+        return Promise.resolve(true);
+      },
       
       async login({commit}, params){
         commit("startLoading")
@@ -388,14 +419,22 @@
       },
 
       async loginWithGoogle({commit}) {
-        commit("startLoading")
-        const url = await Utils.request("scripAppUrl")
-        const href = "https://accounts.google.com/AccountChooser?continue="+url
-        commit("stopLoading")
-        window.top.location.href = href
-        location.reload(true);
-        // window.top.location.href = "https://accounts.google.com/AccountChooser?continue=https://script.google.com/macros/s/AKfycbz2qDOGEP_3291KzE383vV4U7b6BPml9sSGFqdrct-V4_egnHHb4n4_KolzmmzMwOxQ3A/exec";
-        // location.reload(true);
+        commit("startLoading");
+        try {
+          const url = await Utils.request("getAppUrl");
+          const scriptUrl =
+            "https://accounts.google.com/AccountChooser?continue=" +
+            encodeURIComponent(url) +
+            "&service=wise";
+          // window.open(scriptUrl);
+          window.top.location.href = scriptUrl
+          location.reload(true);
+          commit("stopLoading");
+        } catch (error) {
+          // Handle errors
+          console.error(error);
+          commit("stopLoading");
+        }
       }
 
     },

@@ -17,12 +17,12 @@
           :headers="headers"
           :items="leaveTrackingFilter"
           :search="search"
+          :sort-by="['startDate','employeeCode']"
+          :sort-desc="[true, false]"
+          multi-sort
         >
         <template v-slot:item.startDate="{ item }">
           {{ item.startDate ? formatDate(item.startDate) : item.startDate}}
-        </template>
-        <template v-slot:item.endDate="{ item }">
-          {{ item.endDate ? formatDate(item.endDate) : item.endDate}}
         </template>
         <template v-slot:item.startShift="{ item }">
           {{ item.startShift ? new Date(item.startShift).toLocaleTimeString() : item.startShift}}

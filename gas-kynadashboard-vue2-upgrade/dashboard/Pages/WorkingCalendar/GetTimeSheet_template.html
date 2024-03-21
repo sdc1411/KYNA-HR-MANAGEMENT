@@ -1,0 +1,80 @@
+<div>
+  <v-card flat
+    >
+    <v-spacer></v-spacer>
+      <v-card>
+        <v-card-title>
+            <v-btn v-if="loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
+              class="btn ma-2" color="primary" elevation="2" depressed small @click="showTimeSheetForm" :disabled="loading" rounded
+            >
+            <v-icon left>mdi-plus</v-icon>
+              Tải dữ liệu chấm công
+            </v-btn>
+
+            <!-- Dialog tải dữ liệu chấm công -->
+            <v-dialog v-model="dialog.show" :width="dialog.width || 850" persistent>
+              <v-form ref="timeSheetForm" @click.prevent="createTimeSheetForm">
+                <v-card>
+                  <v-card-title class="text-h5 white--text" v-html="dialog.title" :class="dialog.color || 'primary' ">
+                  </v-card-title>
+                  <v-card-text class="mt-6 pb-0">
+                    <v-row align="center">
+                        <v-col
+                          cols="12"
+                          class="mt-2"
+                          sm="6">
+                          <date-picker :item="timeSheetForm.fromDate"></date-picker>
+                        </v-col>
+                        <v-col
+                          cols="12"
+                          class="mt-2"
+                          sm="6">
+                          <date-picker :item="timeSheetForm.toDate"></date-picker>
+                        </v-col>
+                    </v-row>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="createTimeSheetForm" text :color="dialog.color || 'primary' " :disabled="loading">
+                      <v-icon left>{{ dialog.icon }}</v-icon>
+                      Tải dữ liệu
+                    </v-btn>
+                    <v-btn color=" grey " text @click="dialog.show = false" :disabled="loading">
+                      <v-icon left>mdi-cancel</v-icon>
+                      Cancel
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-form>
+            </v-dialog>
+
+
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-card-title>
+        <v-data-table
+          :headers="headers"
+          :items="timeSheetRequests.items"
+          :search="search"
+        >
+        <template v-slot:item.fromDate="{ item }">
+          {{ item.fromDate ? formatDate(item.fromDate) : item.fromDate}}
+        </template>
+        <template v-slot:item.toDate="{ item }">
+          {{ item.toDate ? formatDate(item.toDate) : item.toDate}}
+        </template>
+        <template v-slot:item.createdAt="{ item }">
+          {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : item.createdAt}}
+        </template>
+        </v-data-table>
+      </v-card>
+    <v-spacer></v-spacer>
+  </v-card>
+</div>

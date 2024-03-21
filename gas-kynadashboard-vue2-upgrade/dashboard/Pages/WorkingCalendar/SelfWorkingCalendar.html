@@ -1,0 +1,145 @@
+<script>
+  const SelfWorkingCalendar = {
+    data: () => ({
+      page: 1,
+      pageSize: -1,
+      headers: [
+        {text: "Mã nhân viên", value: "employeeCode"},
+        {text: "Tên nhân viên", value: "employeeName"},
+        {text: "Team", value: "department"},
+        {text: "Vị trí", value: "position"},
+        {text: "Ca đầu", value: "startShift"},
+        {text: "Ngày đầu", value: "startDate"},
+      ],
+      type: 'month',
+      types: [
+        {text: 'Tháng', value: 'month'},
+        {text: 'Tuần', value: 'week'},
+        {text: 'Ngày', value: 'day'}
+      ],
+      mode: 'stack',
+      modes: ['stack', 'column'],
+      weekday: [1, 2, 3, 4, 5, 6, 0],
+      weekdays: [
+        { text: 'Mon - Sun', value: [1, 2, 3, 4, 5, 6, 0] },
+        { text: 'Sun - Sat', value: [0, 1, 2, 3, 4, 5, 6] },
+      ],
+      value: '',
+      events: [],
+      // colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green'],
+      selectedEvent: {},
+      selectedElement: null,
+      selectedOpen: false,
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+        workingCalendar: 'workingCalendar',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+        workingCalendarFilter: "workingCalendarFilter",
+      }),
+    },
+    methods: {
+      viewDay ({ date }) {
+        this.focus = date
+        this.type = 'day'
+      },
+      async onPageLoad(){
+        this.$store.dispatch("getItems", {
+        database: "workingCalendarDatabase", 
+        sheetName: "workingCalendar", 
+        page: this.page, 
+        pageSize: this.pageSize,
+        filters: {
+          employeeCode: this.loginUser.Employee_code,
+          },
+        })
+        this.$store.dispatch("getItems", {
+        database: "leaveDaysDatabase", 
+        sheetName: "leaveTracking", 
+        page: this.page, 
+        pageSize: this.pageSize,
+        filters: {
+          employeeCode: this.loginUser.Employee_code,
+          },
+        })
+        this.$store.dispatch("getItems", {
+        database: "timeSheetDatabase", 
+        sheetName: "timeSheet", 
+        page: this.page, 
+        pageSize: this.pageSize,
+        filters: {
+          employeeCode: this.loginUser.Employee_code,
+          },
+        })
+      },
+      convertItemsToEvents(items) {
+        const events = [];
+        items.forEach(item => {
+          const a1 = new Date(item.startDate);
+          const a2 = new Date(item.startShift)
+
+          const b1 = new Date(item.endDate)
+          const b2 = new Date(item.endShift)
+
+          const startDateTime = new Date(a1.getFullYear(),a1.getMonth(),a1.getDate(),a2.getHours(),a2.getMinutes())
+          const endDateTime = new Date(b1.getFullYear(),b1.getMonth(),b1.getDate(),b2.getHours(),b2.getMinutes())
+
+          const event = {
+            name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
+            start: startDateTime,
+            end: endDateTime,
+            color: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
+            timed: true,
+            details: 'Từ ' + startDateTime.toLocaleString() + ' đến ' + endDateTime.toLocaleString() ,
+          };
+          events.push(event);
+        });
+        // console.log(events)
+        return events;
+      },
+      getEventColor (event) {
+        const colorMap = {
+        'Lịch làm việc': 'cyan',
+        'Nghỉ phép năm': 'indigo',
+        'Làm việc tại nhà': 'deep-purple',
+        'Nghỉ bù': 'accent',
+        'Nghỉ không lương': 'green',
+        'Chấm công vân tay': 'orange'
+      };
+      return colorMap[event.name] || 'grey darken-1';
+      },
+      showEvent ({ nativeEvent, event }) {
+        const open = () => {
+          this.selectedEvent = event
+          this.selectedElement = nativeEvent.target
+          requestAnimationFrame(() => requestAnimationFrame(() => this.selectedOpen = true))
+        }
+
+        if (this.selectedOpen) {
+          this.selectedOpen = false
+          requestAnimationFrame(() => requestAnimationFrame(() => open()))
+        } else {
+          open()
+        }
+        nativeEvent.stopPropagation()
+      },
+    },
+    watch:{
+      page: function(){
+        this.onPageLoad()
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+      <?!= include_('dashboard/Pages/WorkingCalendar/SelfWorkingCalendar_template.html'); ?>
+      `
+  }
+</script>

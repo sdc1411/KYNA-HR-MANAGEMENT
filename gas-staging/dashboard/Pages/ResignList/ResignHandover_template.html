@@ -1,5 +1,5 @@
 <div>
-  <v-data-table :headers="headers" :items="items" :items-per-page="pageSize">
+  <v-data-table :headers="headers" :items="items">
     <template v-slot:item.resignDate="{ item }">
       {{ item.resignDate ? formatDate(item.resignDate) : item.resignDate}}
     </template>

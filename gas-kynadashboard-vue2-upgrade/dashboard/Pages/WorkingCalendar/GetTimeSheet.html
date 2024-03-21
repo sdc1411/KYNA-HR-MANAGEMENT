@@ -1,0 +1,108 @@
+<script>
+const GetTimeSheet = {
+    data: () => ({
+      page: 1,
+      pageSize: -1,
+      search: '',
+      headers: [
+        {
+          text: "ID",
+          align: "start",
+          sortable: false,
+          value: "id",
+        },
+        {text: "Type", value: "type"},
+        {text: "Từ ngày", value: "fromDate"},
+        {text: "Đến ngày",value: "toDate"},
+        {text: "Other Condition",value: "otherCondition"},
+        {text: "Số lượng records",value: "top"},
+        {text: "Ngày tạo",value: "createdAt"},
+      ],
+      timeSheetForm: Utils.copyObject(Forms.TimeSheetForm, true),
+      dialog: {},
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+        timeSheetRequests: 'timeSheetRequests',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+        return `${day}/${month}/${year}`;
+      },
+      async onPageLoad(){
+          this.$store.dispatch("getItems", {
+          database: "timeSheetDatabase", 
+          sheetName: "timeSheetRequests", 
+          pageSize: this.pageSize,
+          page: this.page,
+          })
+      },
+      showTimeSheetForm(item){
+        this.$refs.timeSheetForm && this.$refs.timeSheetForm.resetValidation()
+        this.dialog = {
+          show: true,
+          title: "Tải dữ liệu chấm công",
+          color: "primary",
+          icon: "mdi-plus",
+          width: "400"
+        }
+        this.timeSheetForm = Utils.copyObject(Forms.TimeSheetForm, true)
+      },
+      async createTimeSheetForm(){
+        if (!this.$refs.timeSheetForm.validate()) return
+        const item = Utils.getFormValues(this.timeSheetForm)
+        item.type = 'getTimeSheet'
+        const type = item.type
+        const fromDateFormat = new Date(item.fromDate)
+        fromDateFormat.setHours(0, 0, 0, 0)
+        const toDateFormat = new Date(item.toDate)
+        toDateFormat.setHours(0, 0, 0, 0)
+
+        if (fromDateFormat > toDateFormat) {
+          this.error = 'Ngày kết thúc phải lớn hơn hoặc bằng ngày bắt đầu'
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+          return; 
+        }
+        const validate = this.timeSheetRequests.items.filter((i) => type == i.type && 
+          ((fromDateFormat >= new Date(i.fromDate) && fromDateFormat <= new Date(i.toDate)) ||
+          (toDateFormat >= new Date(i.fromDate) && toDateFormat <= new Date(i.toDate)) ||
+          (fromDateFormat <= new Date(i.fromDate) && toDateFormat >= new Date(i.toDate))
+          )
+        )
+        if (validate.length > 0) {
+          this.error = 'Bạn đã tải dữ liệu chấm công trong vùng thời gian này'
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+        } else {
+          await this.$store.dispatch("getTimeSheet", item)
+          this.$store.dispatch('showSnackbar', {color: 'success',message: 'Dữ liệu chấm công đang được tải'})
+          this.dialog.show = false
+          this.onPageLoad()
+        }
+      },
+    },
+    watch:{
+      page: function(){
+        this.onPageLoad()
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+      <?!= include_('dashboard/Pages/WorkingCalendar/GetTimeSheet_template.html'); ?>
+      `
+  }
+</script>

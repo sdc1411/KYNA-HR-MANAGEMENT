@@ -1,0 +1,94 @@
+<script>
+  const ResignHandover = {
+    data: ()=>({
+      page: 1,
+      headers: [
+        {text: "Mã nhân viên", value: "employeeCode"},
+        {text: "Tên nhân viên", value: "employeeName"},
+        {text: "Email", value: "employeeEmail"},
+        {text: "Team", value: "department"},
+        {text: "Lý do", value: "resignReason"},
+        {text: "Ngày nghỉ việc", value: "resignDate"},
+        {text: "Chi tiết bàn giao", value: "dataHandover"},
+        {text: "Status", value: "status"},
+        {text: "Actions", value: "actions"},
+      ],
+      form: Utils.copyObject(Forms.ApprovalForm, true),
+      dialog: {},
+      comments: {
+        label: "Comments",
+        value: null,
+        type: "textarea",
+        icon: "mdi-comment-text",
+      },
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        items: 'resignList',
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
+      async onPageLoad(){
+        const pageSize = (this.loginUser.system_role === 'Admin' || this.loginUser.system_role === 'HR' || this.loginUser.employee_email === 'long.nguyen@kynaforkids.vn') ? -1 : 100
+        this.$store.dispatch("getItems", {
+          database: "resignDatabase",
+          sheetName: "resignEmployeeHandover", 
+          page: this.page, 
+          pageSize: pageSize, 
+          filters: {
+            status: "Pending",
+            department: this.loginUser.department
+          },
+        })
+      },
+      async submit(){
+        if (!this.$refs.form.validate()) return
+        const item = {
+          id: this.form.id.value,
+          comments: this.comments.value,
+          type: this.dialog.type,
+          completeEmail: this.loginUser.employee_email
+        }
+        const success = await this.$store.dispatch("updateCompleteHandover", {database: "resignDatabase", sheetName: "resignEmployeeHandover",item})
+        // console.log(item)
+        if (success) this.dialog.show = false
+        await this.onPageLoad()
+      },
+      showCompletedForm(item){
+        this.form = Utils.copyObject(Forms.ApprovalForm, true)
+        Utils.updateFormValues(this.form, item, true)
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Complete",
+          title: "Complete",
+          color: "success",
+          icon: "mdi-check",
+        }
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+    <?!= include_('dashboard/Pages/ResignList/ResignHandover_template.html'); ?>
+    `
+  }
+
+</script>

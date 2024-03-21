@@ -1,0 +1,52 @@
+<script>
+    
+  const Dashboard = {
+    data: ()=>({
+      itemsSection: [
+        {
+          color: '#E91E63',
+          src: 'https://res.cloudinary.com/dpwmd0kym/image/upload/v1692336491/Kyna%20Project/v-card/Sotaynhanvien_kyqznt.png',
+          title: 'Sổ tay nhân viên',
+          subtitle: 'Lịch sử hình thành Kyna, văn hóa Kyna',
+          showDialog: false,
+          content: '<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vSryW4Q24wZXk0vQXYZlFv8dCZH4Mo93n3FfTtnTajxF_Q5nVAPG6SA_ChhKwi7-ThtDrN8sC3mbnBm/embed?start=false&loop=false&delayms=3000" frameborder="1" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>',
+        },
+        {
+          color: 'warning',
+          src: 'https://res.cloudinary.com/dpwmd0kym/image/upload/v1692335664/Kyna%20Project/v-card/Noiquylaodong_no7a9l.png',
+          title: 'Nội quy lao động',
+          subtitle: 'Quy tắc, quy chế làm việc của Kyna',
+          showDialog: false,
+          content: '<iframe src="https://docs.google.com/document/d/e/2PACX-1vT0pBK2lzrCA8DtCXxC8KDz5UOObyaANqfWkE14Lhse0DRZeKg_fx2e6kDn7m5WFRYk4TwEu1neI7pk/pub?embedded=true" frameborder="1" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>',
+        },
+        {
+          color: 'info',
+          src: 'https://res.cloudinary.com/dpwmd0kym/image/upload/v1692335344/Kyna%20Project/v-card/Quytrinhnhansu_wklfpl.png',
+          title: 'Quy trình cần biết',
+          subtitle: 'Quy trình thanh toán, nghỉ phép...',
+          showDialog: false,
+          content: '<iframe src="https://docs.google.com/spreadsheets/d/e/2PACX-1vQ24R-MKiQJrTOjfxDSC6VfN4Z2OBkCGLgWZHKraKeXID92OtUaegm2StIbDKj5nAmfzLEuRY8VpD6_/pubhtml?widget=true&amp;headers=false" frameborder="1" width="960" height="569" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>'
+        },
+      ],
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+      }),
+    },
+    methods: {
+      async onPageLoad(){
+        // const loginUser = this.$store.state.loginUser 
+      },
+    },
+    created(){
+      // this.onPageLoad()
+    },
+    template: `<div>
+      <?!= include_('dashboard/Pages/HomeSection1_template.html') ?>
+      <?!= include_('dashboard/Pages/HomeSection2_template.html') ?>
+    </div>`
+  }
+
+
+  </script>

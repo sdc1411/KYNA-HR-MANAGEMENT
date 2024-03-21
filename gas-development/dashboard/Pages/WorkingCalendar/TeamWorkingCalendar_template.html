@@ -1,37 +1,62 @@
-<!-- <div>
+<div>
   <br>
   <v-spacer></v-spacer>
   <br>
-  <div class="row justify-center items-center">
-    <q-btn flat label="Today" @click="calendarToday" />
-    <q-separator vertical />
-    <q-btn flat label="Previous" @click="calendarPrev" />
-    <q-separator vertical />
-    <q-btn flat label="Next" @click="calendarNext" />
-  </div>
+  <v-sheet tile height="54" class="d-flex">
+    <v-btn icon class="ma-2" @click="calendarPrev">
+      <v-icon>mdi-chevron-left</v-icon>
+    </v-btn>
+    <v-btn rounded color="secondary" dark class="ma-2" @click="calendarToday">Today</v-btn>
+    <v-select v-model="view" :items="views" dense outlined hide-details class="ma-2" label="Chọn kiểu hiển thị lịch">
+    </v-select>
+    <v-select v-model="weekday" :items="weekdays" dense outlined hide-details label="Chọn tuần bắt đầu" class="ma-2">
+    </v-select>
+    <v-select v-model="selectedDepartment" :items="listDepartments" dense outlined hide-details label="Chọn phòng ban"
+      class="ma-2">
+    </v-select>
+    <v-spacer></v-spacer>
+    <v-btn icon class="ma-2" @click="calendarNext">
+      <v-icon>mdi-chevron-right</v-icon>
+    </v-btn>
+  </v-sheet>
+
   <br>
   <v-spacer></v-spacer>
   <div class="row justify-center full-width q-pa-md">
-    <q-calendar ref="calendar" v-model="selectedDate" view="week-scheduler" :weekdays="[1,2,3,4,5,6,0]" short-weekday-label :resources="resources" resource-key="Employee_code" :resource-height="0" :resource-width="450" bordered style="height: 100%; width: 100%;">
+    <q-calendar ref="calendar" v-model="selectedDate" :view="view" :weekdays="weekday" short-weekday-label
+      :resources="resources" resource-key="Employee_code" :resource-height="0" :resource-width="300" bordered
+      style="height: 100%; width: 100%;" @click:resource:day2="onClickResourceDay2">
       <template #scheduler-resource-day="{ timestamp, resource }">
         <template v-for="(event, index) in getEvents(timestamp.date, resource.Employee_code)">
-          <q-badge :key="index" style="width: 50%; cursor: pointer; height: 16px; max-height: 16px"
-            class="my-event justify-center" :class="badgeClasses(event, 'day')" :style="badgeStyles(event, 'day')">
-            <q-icon v-if="event.icon" :name="event.icon" class="q-mr-xs"></q-icon>
-            <span class="ellipsis">{{ event.title }} {{event.time}}-{{event.endShift}}</span>
+          <q-badge :key="index" style="width: 10px; max-width: 10px; height: 10px; max-height: 10px" class="q-ma-xs"
+            :class="badgeClasses(event, 'header')" :style="badgeStyles(event, 'header')" @click="showEvent(event)">
           </q-badge>
         </template>
       </template>
+      <template #scheduler-resources-header>
+        <div class="full-height row justify-center items-center">
+          <q-btn>{{getMonthYear}}</q-btn>
+        </div>
+      </template>
       <template #scheduler-resource="{ resource /*, index */ }">
         <div class="q-pa-xs">
-          <div> {{ resource.department }} - {{ resource.cv_name }} ({{ resource.Employee_code }})</div>
+          <div>{{ resource.cv_name }} ({{ resource.Employee_code }})</div>
         </div>
       </template>
     </q-calendar>
   </div>
-</div> -->
-<!-- <div>Đang xây dựng
-  <v-btn @click.prevent="getEvents('2023-09-29','K-0290')">Test</v-btn>
-</div> -->
-<div>Đang xây dựng
+  <v-menu v-model="selectedOpen" :close-on-content-click="false" offset-y>
+    <v-card color="grey lighten-4" min-width="150px" flat>
+      <v-toolbar color="green" dark>
+        <v-toolbar-title>Thông tin</v-toolbar-title>
+      </v-toolbar>
+      <v-card-text v-for="(subitem, index) in selectedEvent" :key="index">
+        <div>
+          <v-badge :color="subitem.bgcolor" inline tile dot>
+          </v-badge>
+          <span v-html="subitem.detail"></span>
+        </div>
+      </v-card-text>
+    </v-card>
+  </v-menu>
 </div>

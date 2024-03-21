@@ -1,0 +1,67 @@
+<script>
+const LeavesList = {
+    data: () => ({
+      page: 1,
+      pageSize: -1,
+      search: '',
+      headers: [
+        {
+          text: "ID",
+          align: "start",
+          sortable: false,
+          value: "id",
+        },
+        {text: "Mã nhân viên", value: "employeeCode"},
+        {text: "Tên nhân viên", value: "employeeName"},
+        {text: "Bộ phận", value: "department"},
+        {text: "Loại",value: "leaveTypes"},
+        {text: "Thời gian bắt đầu",value: "startShift"},
+        {text: "Ngày bắt đầu",value: "startDate"},
+        {text: "Thời gian kết thúc",value: "endShift"},
+        {text: "Ngày kết thúc",value: "endDate"},
+        {text: "Ngày tạo",value: "createdAt"},
+      ],
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+        leaveTrackingFilter: "leaveTrackingFilter",
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+        return `${day}/${month}/${year}`;
+      },
+      async onPageLoad(){
+          this.$store.dispatch("getItems", {
+          database: "leaveDaysDatabase", 
+          sheetName: "leaveTracking", 
+          pageSize: this.pageSize,
+          page: this.page,
+          })
+      },
+    },
+    watch:{
+      page: function(){
+        this.onPageLoad()
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+      <?!= include_('dashboard/Pages/Leaves/LeavesList_template.html'); ?>
+      `
+  }
+</script>

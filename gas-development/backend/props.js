@@ -54,6 +54,10 @@ function readAllProperties() {
 
 
 function updateProperty(key, newValue) {
+  key =  ''
+  newValue = ''
+      // keyFirestore: '',
+      // projectIdFirestore: '',
   try {
     const scriptProperties = PropertiesService.getScriptProperties();
     let units = scriptProperties.getProperty(key);

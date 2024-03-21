@@ -11,8 +11,10 @@
         endDate:'',
       }],
       workingShifts: ["Sáng","Chiều","Ca A(Đầu)","Ca A(Cuối)","Ca B(Đầu)","Ca B(Cuối)","Ca C(Đầu)","Ca C(Cuối)","Ca D(Đầu)","Ca D(Cuối)"],
-      rules: {required: [v => !!v || "This is a required filed"],},
-      tooltipShifts: 'Sáng/Chiều: Áp dụng cho Team theo giờ làm việc 8h30-17h30 | CaA: Áp dụng cho Ops ca từ 8h30 - 17h30 | CaB: Áp dụng cho Ops ca từ 14h-22h | CaC: áp dụng cho Ops ca từ 8h30-12h và 18h-22h | CaD: áp dụng cho Ops ca từ 8h30-10h30 và 16h-22h',
+      rules: {
+        required: [v => !!v || "This is a required field"],
+      },
+      tooltipShifts: 'Sáng/Chiều: Áp dụng cho Team theo giờ làm việc 8h30-17h30 | CaA: Áp dụng cho Ops ca từ 8h30 - 17h30 | CaB: Áp dụng cho Ops ca từ 14h-22h | CaC: áp dụng cho Ops ca từ 8h30-10h30 và 16h-22h | CaD: áp dụng cho Ops ca từ 8h30-12h00 và 18h-22h',
       tooltipAssignToEmails: 'Lưu ý: Chỉ tag email người có thẩm quyền duyệt đơn của mình, không tag email của team HR. Nếu loại đơn cần từ 2 người duyệt trở lên thì tag đủ email của những người cần duyệt',
       selectedDepartment: null,
       selectedEmployeeCode: null,
@@ -82,7 +84,7 @@
         return (value.length === 0) ? '' : result
       },
       showLeaveForm(item){
-        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation()
+        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation() && this.$refs.leaveForm.reset() 
         this.dialogLeaveForm = {
           show: true,
           leaveFormType: "self",
@@ -101,7 +103,7 @@
         this.leaveForm.assignedToEmails.items = this.assignedToEmails
       },
       showLeaveFormOther(item){
-        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation()
+        this.$refs.leaveForm && this.$refs.leaveForm.resetValidation() && this.$refs.leaveForm.reset() 
         this.dialogLeaveFormOther = {
           show: true,
           leaveFormType: "other",
@@ -118,6 +120,14 @@
       async submitLeaveForm(){
         if (!this.$refs.leaveForm.validate()) return
         const item = Utils.getFormValues(this.leaveForm)
+        if (item.assignedToEmails.length === 0) {
+          this.$store.dispatch('showSnackbar', {color: 'error',message: 'Vui lòng chọn Người phê duyệt đơn'})
+          return; 
+        }
+        if (item.leaveTypes.length === 0) {
+          this.$store.dispatch('showSnackbar', {color: 'error',message: 'Vui lòng chọn Loại ngày nghỉ'})
+          return; 
+        }
         item.requestedBy = this.loginUser.employee_email
         const dataApprovals = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Pending", comments: '', timestamp: ''})))
         const dataAutoApproval = JSON.stringify(item.assignedToEmails.map(email => ({email, status: "Approved", comments: 'Đã tự động phê duyệt', timestamp: new Date()})))

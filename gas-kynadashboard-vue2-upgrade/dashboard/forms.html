@@ -1,0 +1,614 @@
+<script>
+  const Forms = {}
+
+  Forms.Search = {
+    label: null,
+    value: null,
+    type: "text",
+    icon: "mdi-magnify",
+    placeholder: "Search ...",
+    hideDetails: true,
+  }
+
+
+  Forms.ResignForm = {
+    resignFormType: {
+      value: null
+    },
+    requesterName: {
+      value: null
+    },
+    requesterEmail: {
+      value: null
+    },
+    requesterLevel: {
+      value: null
+    },
+    fullName: {
+      label: "Họ và tên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-account-circle",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    employeeCode: {
+      label: "Mã nhân viên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-qrcode-scan",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    userEmail: {
+      label: "Email nhân viên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-email",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    department: {
+      label: "Phòng Ban",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-google-classroom",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    position: {
+      label: "Vị trí",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-card-account-details-outline",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    employeeLevel: {
+      value: null
+    },
+    offReason: {
+      label: "Lý do nghỉ việc",
+      type: "textarea",
+      value: null,
+      icon: "mdi-text-box-outline",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    lastWorkingDay: {
+      label: "Ngày làm việc cuối cùng",
+      icon: "mdi-calendar",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+
+  }
+
+  Forms.UpdateProfileForm = {
+    id: {
+      label: "ID",
+      value: null,
+      icon: "mdi-numeric",
+      disabled: true,
+      rules: [],
+    },
+    employeeCode: {
+      label: "Mã nhân viên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-qrcode-scan",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    employeeName: {
+      label: "Họ và tên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-account-circle",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    position: {
+      label: "Vị trí",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-card-account-details-outline",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    updateProfileType: {
+      label: "Loại cập nhật",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      items: ["Address/Email/Phone","Thông tin CMND/CCCD/Passport","Thông tin ngân hàng","Khác"],
+      value: null,
+    },
+
+    employeePhone: {
+      label: "Số điện thoại",
+      value: null,
+      type: "tel",
+      icon: "mdi-phone",
+      
+    },
+    candidateEmail: {
+      label: "Email cá nhân",
+      value: null,
+      type: "email",
+      icon: "mdi-email",
+      rules: [
+        v => /.+@.+/.test(v) || 'E-mail must be valid',
+      ],
+      
+    },
+    currentAddress: {
+      type: "textarea",
+      label: "Địa chỉ hiện tại",
+      value: null,
+      icon: "mdi-map-marker",
+     
+    },
+    cmndID: {
+      label: "Số CMND/CCCD/Passport",
+      value: null,
+      icon: "mdi-id-card",
+      
+    },
+    cmndDate: {
+      label: "Ngày cấp",
+      value: null,
+      icon: "mdi-calendar",
+      
+    },
+    cmndPlace: {
+      type: "textarea",
+      label: "Nơi cấp",
+      icon: "mdi-fireplace-off",
+      value: null,
+      
+    },
+    maritalStatus: {
+      label: "Tình trạng hôn nhân",
+      type: "select",
+      value: null,
+      icon: "mdi-home-heart",
+      items: ["Độc thân","Kết hôn"],
+      
+    },
+    bankAccountNo: {
+      label: "Số tài khoản ngân hàng",
+      value: null,
+      icon: "mdi-bank",
+      
+    },
+    bankAccountName: {
+      label: "Chủ tài khoản",
+      value: null,
+      icon: "mdi-account-tie",
+      
+    },
+    bankName: {
+      type: "textarea",
+      label: "Tên ngân hàng",
+      value: null,
+      icon: "mdi-hoop-house",
+      
+    },
+    bankBranch: {
+      type: "textarea",
+      label: "Tên chi nhánh ngân hàng",
+      value: null,
+      icon: "mdi-home-group",
+      
+    },
+    registerHospital: {
+      type: "textarea",
+      label: "Tên bệnh viên đăng ký BHXH",
+      value: null,
+      icon: "mdi-hospital-box",
+      
+    },
+    
+  }
+
+  Forms.ReviewForm = {
+    userEmail: {
+      label: "Email người đề xuất",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-email",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    fullName: {
+      label: "Họ và tên người đề xuất",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-account-circle",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    applyEmployeeName: {
+      label: "Họ và tên nhân viên được điều chỉnh",
+      value: null,
+      icon: "mdi-account-star",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      
+    },
+    applyEmployeeCode: {
+      label: "Mã số nhân viên",
+      value: null,
+      icon: "mdi-barcode",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    applyEmployeeDepartment: {
+      type: "select",
+      label: "Phòng Ban",
+      value: null,
+      icon: "mdi-microsoft-teams",
+      items: [],
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    newContractType: {
+      type: "textarea",
+      label: "Hình thức hợp đồng mới",
+      value: null,
+      icon: "mdi-file-sign",
+    },
+    newPosition: {
+      type: "textarea",
+      label: "Vị trí công việc mới",
+      value: null,
+      icon: "mdi-card-account-details-outline",
+    },
+    newLevel: {
+      type: "select",
+      label: "Cấp bậc nhân viên mới",
+      items: ['Junior','Senior','Supervisor','Manager','Director','C-level'],
+      value: null,
+      icon: "mdi-certificate",
+    },
+    newGrossSalary: {
+      type: 'number',
+      label: "Thu nhập Gross mới (đã bao gồm phụ cấp chức vụ) theo VND",
+      value: null,
+      icon: "mdi-cash",
+    },
+    salaryUnit: {
+      type: "select",
+      label: "Đơn vị",
+      items: ['tháng','giờ cộng tác','bài cộng tác','ca cộng tác (4 giờ)','ca cộng tác (8 giờ)'],
+      value: null,
+    },
+    newOther: {
+      type: "textarea",
+      label: "Các điều khoản thay đổi khác",
+      value: null,
+      icon: "mdi-account-details",
+    },
+    newApplyDate: {
+      label: "Ngày áp dụng",
+      value: null,
+      icon: "mdi-calendar",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      
+    },
+    requestReason: {
+      type: "textarea",
+      label: "Lý do của việc đề xuất (nếu có)",
+      value: null,
+      icon: "mdi-account-details-outline",
+    },
+    
+  }
+
+  Forms.Login = {
+    email: {
+      label: "Email cá nhân đã đăng ký",
+      value: null,
+      type: "email",
+      icon: "mdi-email",
+      outlined: true,
+      rules: [
+        v => !!v || "This is a required filed",
+      ]
+    },
+  }
+
+  Forms.LeaveForm = {
+    id: {
+      label: "ID",
+      value: null,
+      icon: "mdi-numeric",
+      disabled: true,
+      rules: [],
+    },
+    createdAt: {
+      label: "Ngày tạo",
+      value: null,
+      icon: "mdi-calendar-today",
+      disabled: true,
+      rules: [],
+    },
+    employeeName: {
+      label: "Họ và tên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-account-circle",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    employeeCode: {
+      label: "Mã nhân viên",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-qrcode-scan",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    department: {
+      label: "Phòng Ban",
+      type: "autocomplete",
+      value: null,
+      icon: "mdi-google-classroom",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: false,
+      items: [],
+    },
+    assignedToEmails: {
+      label: "Chọn người phê duyệt đơn",
+      type: "autocomplete",
+      value: [],
+      icon: "mdi-email",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: true,
+      items: [],
+    },
+    leaveTypes: {
+      type: "select",
+      label: "Loại ngày nghỉ",
+      value: [],
+      icon: "mdi-file-sign",
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      items: [],
+    },
+    status: {
+      label: "Status",
+      value: "Pending",
+      icon: "mdi-cog",
+      disabled: true,
+      rules: [],
+    },
+    dataApprovals: {
+      label: "Data Approvals",
+      value: null,
+      icon: "mdi-script-text",
+      disabled: true,
+      rules: [],
+    },
+    dataLeaveDays: {
+      label: "Data Leave Days",
+      value: null,
+      icon: "mdi-script-text",
+      disabled: true,
+      rules: [],
+    },
+    pendingOn: {
+      label: "Pending On",
+      value: null,
+      icon: "mdi-account-alert",
+      disabled: true,
+      rules: [],
+    },
+    requestReason: {
+      type: "textarea",
+      label: "Mô tả lý do (Optional)",
+      value: null,
+      icon: "mdi-note-text",
+    },
+  
+  }
+
+  Forms.ApprovalForm = {
+    id: {
+      label: "ID",
+      value: null,
+      icon: "mdi-numeric",
+      disabled: true,
+      rules: [],
+    },
+    dataHandover: {
+      label: "Chi tiết bàn giao",
+      value: null,
+      icon: "mdi-script-text",
+      disabled: true,
+      rules: [],
+    },
+  }
+
+  Forms.WorkingTimeForm = {
+    id: {
+      label: "ID",
+      value: null,
+      disabled: true,
+      rules: [],
+    },
+    workingTimeType: {
+      label: "Mã ca",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    description: {
+      type: "textarea",
+      label: "Mô tả",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    startShiftAllDay: {
+      label: "Ca bắt đầu (nguyên ngày)",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    endShiftAllDay: {
+      label: "Ca kết thúc (nguyên ngày)",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    workingAllDay: {
+      type: 'autocomplete',
+      label: "Ngày làm việc (nguyên ngày)",
+      value: [],
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+      multiple: true,
+    },
+    startShiftOptional: {
+      label: "Ca bắt đầu (optional)",
+      value: null,
+      rules: [],
+    },
+    endShiftOptional: {
+      label: "Ca kết thúc (optional)",
+      value: null,
+      rules: [],
+    },
+    workingOptionalDay: {
+      type: 'autocomplete',
+      label: "Ngày làm việc (optional)",
+      value: [],
+      rules: [],
+      multiple: true,
+    },
+  }
+
+  Forms.WorkingCalendarForm = {
+    fromDate: {
+      label: "Từ ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    toDate: {
+      label: "Đến ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    object: {
+      label: "Đối tượng",
+      type: "autocomplete",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    employeeCode: {
+      label: "Mã nhân viên",
+      value: null,
+      rules: [],
+    },
+    department: {
+      type: "autocomplete",
+      label: "Phòng ban",
+      value: null,
+      rules: [],
+    },
+    importData: {
+      type: "autocomplete",
+      label: "Dữ liệu import",
+      value: null,
+      rules: [],
+    }
+  }
+
+  Forms.TimeSheetForm = {
+    fromDate: {
+      label: "Từ ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    toDate: {
+      label: "Đến ngày",
+      value: null,
+      rules: [
+        v => !!v || "This is a required filed",
+      ],
+    },
+    otherCondition: {
+      label: "Điều kiện lọc khác",
+      value: null
+    },
+    top: {
+      label: "Số lượng records",
+      value: null,
+    },
+  }
+
+</script>
+

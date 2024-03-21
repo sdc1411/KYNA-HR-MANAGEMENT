@@ -1,0 +1,80 @@
+<script>
+  
+  const Users = {
+    data: ()=>({
+      page: 1,
+      pageSize: -1,
+      headers: [
+        {text: "Mã nhân viên", value: "Employee_code"},
+        {text: "Tên nhân viên", value: "cv_name"},
+        {text: "Team", value: "department"},
+        {text: "Vị trí", value: "position"},
+        {text: "Cấp bậc", value: "level"},
+        {text: "Email", value: "employee_email"},
+        // {text: "Details", value: "data", width: "500"},
+        // {text: "Modified On", value: "modifiedOn"},
+        {text: "Ngày vào công ty", value: "onboard_date"},
+      ],
+      search: Utils.copyObject(Forms.Search),
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        loginUser: "loginUser",
+        usersTeamSearch: "usersTeamSearch",
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        isAdmin: "isAdmin",
+        isHR: "isHR",
+        userTeamFilter: "userTeamFilter",
+      }),
+
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
+      // async onPageLoad(){
+      //     this.$store.dispatch("getItems", {
+      //     database: "userDatabase", 
+      //     sheetName: "users", 
+      //     page: this.page, 
+      //     pageSize: this.pageSize,
+      //     })
+      // },
+      onSearch(){
+        if (!this.search.value){
+          this.$store.dispatch("getUsersTeamSearch", {database: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters: { department: this.loginUser.department}})
+        }else{
+          const filters = {
+            Employee_code: this.search.value,
+            cv_name: this.search.value,
+            employee_email: this.search.value,
+            department: this.search.value,
+          }
+          this.$store.dispatch("getUsersTeamSearch", {database: "userDatabase", sheetName: "users", page: this.page, pageSize: 60, filters})
+        }
+      },
+    },
+    // watch:{
+    //   page: function(){
+    //     this.onPageLoad()
+    //   },
+    // },
+    // created(){
+    //   this.onPageLoad()
+    // },
+    template: `
+    <?!= include_('dashboard/Pages/Users/Users_template.html'); ?>
+    `
+  }
+
+  </script>

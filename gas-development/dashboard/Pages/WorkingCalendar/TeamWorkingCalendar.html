@@ -2,68 +2,62 @@
 <script>
   const TeamWorkingCalendar = {
     data: () => ({
-      page: 1,
-      pageSize: -1,
       selectedDate: '',
-      // resources: [
-      //   { employeeCode: 'K-0001',employeeName: 'John'},
-      //   { employeeCode: 'K-0002',employeeName: 'Linda'},
-      //   { employeeCode: 'K-0003',employeeName: 'Mary'},
-      //   { employeeCode: 'K-0004',employeeName: 'Susan'},
-      //   { employeeCode: 'K-0005',employeeName: 'Olivia'}
-      // ],
-      // dataEvents : [
-      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-25', endDate: '2023-09-30', time: '08:00', endShift: '17:30', title: 'working', days: 4 ,bgcolor: 'green' },
-      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-26', endDate: '2023-09-26', time: '08:00', endShift: '17:30', title: 'nghỉ phép', duration: 200, bgcolor: 'orange' },
-      //   {employeeCode: 'K-0001',employeeName: 'John', date: '2023-09-29', endDate: '2023-09-29', time: '08:00', endShift: '17:30', title: 'nghỉ ốm', duration: 200, bgcolor: 'blue' },
-      //   { employeeCode: 'K-0002',employeeName: 'Linda', date: '2023-09-26', endDate: '2023-09-30', time: '08:00', endShift: '17:30', day: 3, title: 'nghỉ phép', days: 4, bgcolor: 'orange' },
-      //   { employeeCode: 'K-0003',employeeName: 'Mary', date: '2023-09-29', endDate: '2023-09-29', time: '08:00', endShift: '17:30', title: 'working', duration: 300 , bgcolor: 'green' },
-      //   { employeeCode: 'K-0004',employeeName: 'Susan',date: '2023-09-30', endDate: '2023-09-30', time: '12:00', endShift: '22:00', title: 'working', duration: 350 , bgcolor: 'green' },
-      // ]
+      view: 'week-scheduler',
+      views: [
+        {text: 'Tháng', value: 'month-scheduler'},
+        {text: 'Tuần', value: 'week-scheduler'},
+        {text: 'Ngày', value: 'day-scheduler'}
+      ],
+      weekday: [1, 2, 3, 4, 5, 6, 0],
+      weekdays: [
+        { text: 'Mon - Sun', value: [1, 2, 3, 4, 5, 6, 0] },
+        { text: 'Sun - Sat', value: [0, 1, 2, 3, 4, 5, 6] },
+      ],
+      selectedDepartment: null,
+      selectedEvent: [],
+      selectedOpen: false,
     }),
     computed: {
       ...Vuex.mapState({
         loading: "loading",
         loginUser: "loginUser",
         statusColor: 'statusColor',
+        usersFilter: 'users',
       }),
       ...Vuex.mapGetters({
         isAdmin: "isAdmin",
         isHR: "isHR",
-        resources: 'userTeamFilter',
+        listDepartments: 'listDepartments',
         workingCalendarTeamFilter: 'workingCalendarTeamFilter',
       }),
+      resources(){
+        return (!this.selectedDepartment) ? this.usersFilter.items.filter(item => item.department !== '' && item.department === this.loginUser.department) : this.usersFilter.items.filter(item => item.department !== '' && item.department === this.selectedDepartment)
+      },
+      getMonthYear () {
+        const date = (this.selectedDate) ? new Date(this.selectedDate) : new Date()
+        const monthYear = `${date.getMonth()+1}/${date.getFullYear()}`
+        return monthYear
+      },
     },
     methods: {
-      // async onPageLoad(){
-      //   this.$store.dispatch("getItems", {
-      //   database: "workingCalendarDatabase", 
-      //   sheetName: "workingCalendar", 
-      //   page: this.page, 
-      //   pageSize: this.pageSize,
-      //   filters: {
-      //     dapartment: this.loginUser.department,
-      //     },
-      //   })
-      //   this.$store.dispatch("getItems", {
-      //   database: "leaveDaysDatabase", 
-      //   sheetName: "leaveTracking", 
-      //   page: this.page, 
-      //   pageSize: this.pageSize,
-      //   filters: {
-      //     dapartment: this.loginUser.department,
-      //     },
-      //   })
-      //   this.$store.dispatch("getItems", {
-      //   database: "timeSheetDatabase", 
-      //   sheetName: "timeSheet", 
-      //   page: this.page, 
-      //   pageSize: this.pageSize,
-      //   filters: {
-      //     dapartment: this.loginUser.department,
-      //     },
-      //   })
-      // },
+      getDateTimeFormat(date,time) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date)
+        const formattedTime = new Date(time);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+        const hours = formattedTime.getHours().toString().padStart(2, '0');
+        const minutes = formattedTime.getMinutes().toString().padStart(2, '0');
+        const dateFormat1 = `${day}/${month}/${year}`
+        const dateFormat2 = `${year}-${month}-${day}`
+        const timeFormat = `${hours}:${minutes}`
+        const dateTimeFormat = `${dateFormat2} ${timeFormat}`
+
+        return {dateFormat1, timeFormat, dateFormat2, dateTimeFormat};
+      },
       calendarToday () {
         this.$refs.calendar.moveToToday()
       },
@@ -106,103 +100,21 @@
         const items = this.workingCalendarTeamFilter.filter((item) => item.employeeCode === employeeCode && new Date(item.startDate).setHours(0,0,0,0) <= dateFormat && new Date(item.endDate).setHours(0,0,0,0) >= dateFormat)
         const dataEvents = [];
         items.forEach(item => {
-          const a1 = new Date(item.startDate)
-          const a1Year = a1.getFullYear()
-          const a1Month = ('0' + (a1.getMonth() + 1)).slice(-2);
-          const a1Date = ('0' + a1.getDate()).slice(-2);
-          const startDate = a1.setHours(0,0,0,0)
-          const startDateFormat = a1Year + '-' + a1Month + '-' + a1Date;
-          const b1 = new Date(item.endDate)
-          const b1Year = b1.getFullYear()
-          const b1Month = ('0' + (b1.getMonth() + 1)).slice(-2);
-          const b1Date = ('0' + b1.getDate()).slice(-2);
-          const endDate = b1.setHours(0,0,0,0)
-          const endDateFormat = b1Year + '-' + b1Month + '-' + b1Date;
-          const a2 = new Date(item.startShift)
-          const a2Hour = ('0' + a2.getHours()).slice(-2);
-          const a2Minute = ('0' + a2.getMinutes()).slice(-2);
-          const startShiftFormat = a2Hour + ':' + a2Minute;
-          const b2 = new Date(item.endShift)
-          if (startDate === endDate) {
-            const duration = Math.abs((b2.getTime() - a2.getTime()) / (1000 * 60));
-            const event = {
-            title: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
-            date: startDateFormat,
-            endDate: endDateFormat,
-            time: startShiftFormat,
-            bgcolor: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
-            duration: duration
+          const title = item.workingTimeTypeName || item.leaveTypes || item.timeSheetType 
+          const {dateFormat1: startDateFormat1, timeFormat: startShift, dateFormat2: startDateFormat2} = this.getDateTimeFormat(item.startDate, item.startShift)
+          const {dateFormat1: endDateFormat1, timeFormat: endShift, dateFormat2: endDateFormat2} = this.getDateTimeFormat(item.endDate, item.endShift)
+          const event = {
+          title: title,
+          date: startDateFormat2,
+          endDate: endDateFormat2,
+          startShift: startShift,
+          endShift: endShift,
+          bgcolor: this.getEventColor({ name: title }),
+          detail: `${title} từ ${startShift} ngày ${startDateFormat1} đến ${endShift} ngày ${endDateFormat1}`
           };
           dataEvents.push(event);
-          } else if (startDate < endDate) {
-            const a1 = new Date(item.startDate)
-            const a1Year = a1.getFullYear()
-            const a1Month = ('0' + (a1.getMonth() + 1)).slice(-2);
-            const a1Date = ('0' + a1.getDate()).slice(-2);
-            const startDate = new Date(a1Year,a1.getMonth, a1.getDate(),0,0)
-            const startDateFormat = a1Year + '-' + a1Month + '-' + a1Date;
-            const b1 = new Date(item.endDate)
-            const b1Year = b1.getFullYear()
-            const b1Month = ('0' + (b1.getMonth() + 1)).slice(-2);
-            const b1Date = ('0' + b1.getDate()).slice(-2);
-            const endDate = new Date(b1Year,b1.getMonth, b1.getDate(),0,0)
-            const endDateFormat = b1Year + '-' + b1Month + '-' + b1Date;
-            const duration = b1.getTime() - a1.getTime()
-            const days = Math.floor(duration / (1000 * 60 * 60 * 24))
-            const event = {
-            title: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
-            date: startDateFormat,
-            endDate: endDateFormat,
-            bgcolor: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
-            days: days 
-            }
-            dataEvents.push(event)
-          }
-          
         });
-    
-        const currentDate = QCalendar.parseTimestamp(date)
-        const events = []
-        for (let i = 0; i < dataEvents.length; ++i) {
-          let added = false
-          if (dataEvents[i].date === date) {
-            if (dataEvents[i].time) {
-              if (events.length > 0) {
-                // check for overlapping times
-                const startTime = QCalendar.parseTimestamp(dataEvents[i].date + ' ' + dataEvents[i].time)
-                const endTime = QCalendar.addToDate(startTime, { minute: dataEvents[i].duration })
-                for (let j = 0; j < events.length; ++j) {
-                  if (events[j].time) {
-                    const startTime2 = QCalendar.parseTimestamp(events[j].date + ' ' + events[j].time)
-                    const endTime2 = QCalendar.addToDate(startTime2, { minute: events[j].duration })
-                    if (QCalendar.isBetweenDates(startTime, startTime2, endTime2) || QCalendar.isBetweenDates(endTime, startTime2, endTime2)) {
-                      events[j].side = 'left'
-                      dataEvents[i].side = 'right'
-                      events.push(dataEvents[i])
-                      added = true
-                      break
-                    }
-                  }
-                }
-              }
-            }
-            if (!added) {
-              dataEvents[i].side = undefined
-              events.push(dataEvents[i])
-            }
-          }
-          else if (dataEvents[i].days) {
-            // check for overlapping dates
-            const startDate = QCalendar.parseTimestamp(dataEvents[i].date)
-            const endDate = QCalendar.addToDate(startDate, { day: dataEvents[i].days })
-            if (QCalendar.isBetweenDates(currentDate, startDate, endDate)) {
-              events.push(dataEvents[i])
-              added = true
-            }
-          }
-        }
-        // console.log(events)
-        return events
+        return dataEvents
       },
       getEventColor (event) {
           const colorMap = {
@@ -215,15 +127,23 @@
         };
         return colorMap[event.name] || 'grey darken-1';
       },
+      onClickResourceDay2 (data) {
+        const dataEvents = this.getEvents(data.scope.timestamp.date, data.scope.resource.Employee_code)
+        const open = () => {
+          this.selectedEvent = dataEvents
+          if(this.selectedEvent.length > 0) {
+            this.selectedOpen = true
+            return this.selectedEvent
+          }
+        }
+        if (this.selectedOpen) {
+          this.selectedOpen = false
+          open()
+        } else {
+          open()
+        }
+      },
     },
-    // watch:{
-    //   page: function(){
-    //     this.onPageLoad()
-    //   },
-    // },
-    // created(){
-    //   this.onPageLoad()
-    // },
     template: `
       <?!= include_('dashboard/Pages/WorkingCalendar/TeamWorkingCalendar_template.html'); ?>
       `

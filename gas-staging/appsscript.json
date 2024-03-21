@@ -14,10 +14,26 @@
         "version": "33",
         "libraryId": "1VUSl4b1r1eoNcRWotZM3e87ygkxvXltOgyDZhixqncz9lQ3MjfT1iKFw"
       }
+    ],
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "Sheets",
+        "version": "v4",
+        "serviceId": "sheets"
+      },
+      {
+        "userSymbol": "Chat",
+        "version": "v1",
+        "serviceId": "chat"
+      }
     ]
   },
   "webapp": {
     "executeAs": "USER_DEPLOYING",
     "access": "ANYONE_ANONYMOUS"
-  }
+  },
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/chat.messages.create",
+    "https://www.googleapis.com/auth/spreadsheets"
+  ]
 }

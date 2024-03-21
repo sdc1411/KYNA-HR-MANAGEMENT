@@ -2,7 +2,6 @@
 const LeavesList = {
     data: () => ({
       page: 1,
-      pageSize: -1,
       search: '',
       headers: [
         {
@@ -15,10 +14,9 @@ const LeavesList = {
         {text: "Tên nhân viên", value: "employeeName"},
         {text: "Bộ phận", value: "department"},
         {text: "Loại",value: "leaveTypes"},
-        {text: "Thời gian bắt đầu",value: "startShift"},
-        {text: "Ngày bắt đầu",value: "startDate"},
-        {text: "Thời gian kết thúc",value: "endShift"},
-        {text: "Ngày kết thúc",value: "endDate"},
+        {text: "Từ ngày",value: "startShift"},
+        {text: "Đến ngày",value: "endShift"},
+        {text: "Ngày",value: "startDate"},
         {text: "Ngày tạo",value: "createdAt"},
       ],
     }),
@@ -44,13 +42,17 @@ const LeavesList = {
         return `${day}/${month}/${year}`;
       },
       async onPageLoad(){
-          this.$store.dispatch("getItems", {
-          database: "leaveDaysDatabase", 
-          sheetName: "leaveTracking", 
-          pageSize: this.pageSize,
-          page: this.page,
-          })
-      },
+        const pageSize = (this.loginUser.system_role === 'Admin' || this.loginUser.system_role === 'HR') ? -1 : 100     
+        this.$store.dispatch("getItems", {
+        database: "leaveDaysDatabase", 
+        sheetName: "leaveTracking", 
+        pageSize: pageSize,
+        page: this.page,
+        filters: {
+          department: this.loginUser.department
+          },
+        })
+    },
     },
     watch:{
       page: function(){

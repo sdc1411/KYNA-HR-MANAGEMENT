@@ -3,6 +3,8 @@
 
 // development
 {"scriptId":"1_mfgdsXuMpLD79-sXsY4DvOB7hnj8DWmobGpkBcXSx04biVjPNjMg4bf","rootDir":"./gas-development"}
+// development - KynaHRDashboard Vue 2.7.1 upgrade
+{"scriptId":"1YZ7JTWKf4N_NogqsqWpvPRTwN0VYKO6RuBEp5RQpz74-GCz_gQ92HnQQ","rootDir":"./gas-kynadashboard-vue2-upgrade"}
 
 // staging
 {"scriptId":"1klabwF-5orFcrVtl37AHC5mAtk3BpjyHCDICNBWBrG5__sGrDaXZtHRG","rootDir":"./gas-staging"}

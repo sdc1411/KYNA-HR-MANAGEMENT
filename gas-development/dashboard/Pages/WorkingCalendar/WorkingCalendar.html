@@ -1,0 +1,21 @@
+
+
+<script>
+  const WorkingCalendar = {
+    props: ["id"],
+    data: ()=>({
+      activeTab: "/WorkingCalendar",
+      tabs: [
+        { id: 1, name: "Lịch làm việc cá nhân", route: "/WorkingCalendar" },
+        { id: 2, name: "Lịch làm việc Team", route: "/WorkingCalendar/TeamWorkingCalendar"},
+        { id: 3, name: "Tạo lịch làm việc", route: "/WorkingCalendar/CreateWorkingCalendar"},
+        { id: 4, name: "Tạo ca làm việc", route: "/WorkingCalendar/CreateWorkingShift"},
+        { id: 5, name: "Tải dữ liệu chấm công", route: "/WorkingCalendar/GetTimeSheet"},
+      ]
+    }),
+    template: `
+      <?!= include_('dashboard/Pages/WorkingCalendar/WorkingCalendar_template.html'); ?>
+      `
+  }
+
+  </script>

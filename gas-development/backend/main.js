@@ -14,6 +14,32 @@ function convertDate(data) {
   }
 }
 
+function  getDepartmentCode(departmentName) {
+  const departmentCodeMapping = {
+    'Board': 1,
+    'Academic - Curriculum': 2,
+    'Academic - Student Care': 3,
+    'Academic - Teacher Care': 4,
+    'Accounting & Finance': 5,
+    'Business Development': 6,
+    'Course Design': 7,
+    'Cusomer Service (Video)': 8,
+    'Design': 9,
+    'Admin Logistics': 11,
+    'Marketing': 12,
+    'Math - Curriculum': 13,
+    'Math - Teacher Care': 15,
+    'Math - Student Care': 14,
+    'Operation': 16,
+    'Sales Tutoring': 17,
+    'Sales Video': 18,
+    'Technology & IT': 19,
+    'Teacher': 20,
+    'Human Resources & Adminisrtation': 10
+  };
+  return departmentCodeMapping[departmentName] || departmentName;
+}
+
 
 function doGet(e) {
 
@@ -115,24 +141,9 @@ function include_(filename) {
 
 class App {
   constructor() {
-    this.dbUser = SpreadsheetApp.openById(CONFIG.DATABASE.USERS)
-    this.dbLeaves = SpreadsheetApp.openById(CONFIG.DATABASE.LEAVES)
-    this.dbWorkingCalendar = SpreadsheetApp.openById(CONFIG.DATABASE.WORKING_CALENDAR)
-    this.dbEmployeeInformation = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_INFORMATION)
-    this.dbResigns = SpreadsheetApp.openById(CONFIG.DATABASE.RESIGNS)
-    this.dbEmployeeContractManagement = SpreadsheetApp.openById(CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT)
-    this.dbTimeSheet = SpreadsheetApp.openById(CONFIG.DATABASE.TIME_SHEET)
     this.reverse = CONFIG.REVERSE
     this.headerId = 'id'
   }
-
-  // getAppInfo() {
-  //   const data = {
-  //     name: CONFIG.NAME,
-  //     title: CONFIG.TITLE,
-  //   }
-  //   return data
-  // }
 
   createKeys(headers) {
     return headers.map(header => header.toString().trim())
@@ -172,8 +183,9 @@ class App {
   }
 
   getDataLoginUser() {
-    const wsUsers = this.dbUser.getSheetByName(CONFIG.SHEET_NAME.USER)
-    if (!wsUsers) throw new Error(`${CONFIG.SHEET_NAME.USER} was not found in the database`)
+    const dbUser = SpreadsheetApp.openById(CONFIG.DATABASE.USERS)
+    const wsUsers = dbUser.getSheetByName(CONFIG.SHEET_NAME.USER)
+    // if (!wsUsers) throw new Error(`${CONFIG.SHEET_NAME.USER} was not found in the database`)
     const [headers,...records] = wsUsers.getDataRange().getValues()
     
     const keys = this.createKeys(headers)
@@ -191,11 +203,11 @@ class App {
       }
     } else {
       loginUsers[0].login_email = loginUserEmail
-      const wsLeaveRequests = this.dbUser.getSheetByName(CONFIG.SHEET_NAME.LEAVE_REQUESTS)
+      const wsLeaveRequests = dbUser.getSheetByName(CONFIG.SHEET_NAME.LEAVE_REQUESTS)
       const [leaveRequestHeaders,...leaveRequestRecords] = wsLeaveRequests.getDataRange().getValues()
       const leaveRequestKeys = this.createKeys(leaveRequestHeaders)
 
-      const wsLeaveTypes = this.dbUser.getSheetByName(CONFIG.SHEET_NAME.LEAVE_TYPES)
+      const wsLeaveTypes = dbUser.getSheetByName(CONFIG.SHEET_NAME.LEAVE_TYPES)
       const [leaveTypeHeaders,...leaveTypeRecords] = wsLeaveTypes.getDataRange().getValues()
       const leaveTypeKeys = this.createKeys(leaveTypeHeaders)
 
@@ -211,7 +223,8 @@ class App {
   }
 
   getDataLoginNonUser(data) {
-    const ws = this.dbUser.getSheetByName(CONFIG.SHEET_NAME.USER)
+    const dbUser = SpreadsheetApp.openById(CONFIG.DATABASE.USERS)
+    const ws = dbUser.getSheetByName(CONFIG.SHEET_NAME.USER)
     if (!ws) throw new Error(`${CONFIG.SHEET_NAME.USER} was not found in the database`)
     const [headers,...records] = ws.getDataRange().getValues()
     
@@ -258,12 +271,21 @@ class App {
     } else {return}
   }
 
+  getItems({ page, pageSize, database, sheetName, filters }) {
+    const id = (database === 'userDatabase') ? CONFIG.DATABASE.USERS : 
+               (database === 'leaveDaysDatabase') ? CONFIG.DATABASE.LEAVES : 
+               (database === 'workingCalendarDatabase') ? CONFIG.DATABASE.WORKING_CALENDAR : 
+               (database === 'resignDatabase') ? CONFIG.DATABASE.RESIGNS : 
+               (database === 'employeeContractDatabase') ? CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT : 
+               (database === 'timeSheetDatabase') ? CONFIG.DATABASE.TIME_SHEET : null;
 
-  getItems({ page, pageSize, database ,sheetName, filters }) {
-  
-    const ss = (database === 'userDatabase') ? this.dbUser : (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'resignDatabase') ? this.dbResigns : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'timeSheetDatabase') ? this.dbTimeSheet :  null
+    return this.getSheetItems(id, sheetName, pageSize, page, filters);
+  }
+
+  getSheetItems(id, sheetName, pageSize, page, filters) {
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
-    
+
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
     const keys = this.createKeys(headers)
@@ -288,7 +310,8 @@ class App {
   }
 
   createItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : (database === 'workingCalendarDatabase') ? this.dbWorkingCalendar : (database === 'timeSheetDatabase') ? this.dbTimeSheet : null
+    const id = (database === 'leaveDaysDatabase') ? CONFIG.DATABASE.LEAVES : (database === 'employeeInformationDatabase') ? CONFIG.DATABASE.EMPLOYEE_INFORMATION : (database === 'employeeContractDatabase') ? CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT : (database === 'workingCalendarDatabase') ? CONFIG.DATABASE.WORKING_CALENDAR : (database === 'timeSheetDatabase') ? CONFIG.DATABASE.TIME_SHEET : null
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -298,10 +321,12 @@ class App {
     const values = this.createValues(keys, item)
     ws.getRange(records.length + 2, 1, 1, values.length).setValues([values])
     if (database === 'leaveDaysDatabase') {
-      pushLeaveTracking()
-      console.log(item)
       if (item.pendingOn) {
         this.sendNotificationApproval(sheetName,item.id,item.employeeName,item.department,item.pendingOn)
+      }
+      if (item.status === 'Approved') {
+        const app = new PushLeaveTracking()
+        app.pushLeaveTracking(item.id)
       }
     }
     return {
@@ -312,7 +337,8 @@ class App {
   }
 
   updateItem({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : (database === 'employeeContractDatabase') ? this.dbEmployeeContractManagement : null
+    const id = (database === 'leaveDaysDatabase') ? CONFIG.DATABASE.LEAVES : (database === 'employeeInformationDatabase') ? CONFIG.DATABASE.EMPLOYEE_INFORMATION : (database === 'employeeContractDatabase') ? CONFIG.DATABASE.EMPLOYEE_CONTRACT_MANAGEMENT : null
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -368,7 +394,8 @@ class App {
   }
 
   updateApproval({ database ,sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : null
+    const id = (database === 'leaveDaysDatabase') ? CONFIG.DATABASE.LEAVES : null
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -386,13 +413,13 @@ class App {
     // item.modifiedOn = new Date()
     const values = this.createValues(keys, item, records[index])
     ws.getRange(index + 2, 1, 1, values.length).setValues([values])
-    // console.log(values)
-    // console.log(keys)
-    // console.log(item)
     if (database === 'leaveDaysDatabase') {
-      pushLeaveTracking()
-      if (item.pendingOn && (item.type === 'Approve' || item.type === 'Forward')) {
+      if (item.pendingOn) {
         this.sendNotificationApproval(sheetName,item.id,item.employeeName,item.department,item.pendingOn)
+      }
+      if (item.status === 'Approved') {
+        const app = new PushLeaveTracking()
+        app.pushLeaveTracking(item.id)
       }
     }
     return {
@@ -427,7 +454,8 @@ class App {
   }
 
   updateCompleteHandover({ database ,sheetName, item }) {
-    const ss = (database === 'resignDatabase') ? this.dbResigns : null
+    const id = (database === 'resignDatabase') ? CONFIG.DATABASE.RESIGNS : null
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -455,7 +483,8 @@ class App {
   }
 
   deleteItem({ database, sheetName, item }) {
-    const ss = (database === 'leaveDaysDatabase') ? this.dbLeaves : (database === 'employeeInformationDatabase') ? this.dbEmployeeInformation : null
+    const id = (database === 'leaveDaysDatabase') ? CONFIG.DATABASE.LEAVES : (database === 'employeeInformationDatabase') ? CONFIG.DATABASE.EMPLOYEE_INFORMATION : null
+    const ss = SpreadsheetApp.openById(id)
     const ws = ss.getSheetByName(sheetName)
     if (!ws) throw new Error(`${sheetName} was not found in the database.`)
     const [headers, ...records] = ws.getDataRange().getValues()
@@ -481,9 +510,8 @@ class App {
 const app = new App()
 
 // const test = () => {
-  
-//   page = 1
-//   pageSize = 300
+//   page = 1,
+//   pageSize = 100,
 //   database = 'userDatabase'
 //   sheetName = 'users'
 //   filters = {
@@ -507,8 +535,9 @@ const createItem = (params) => JSON.stringify(app.createItem(JSON.parse(params))
 const updateApproval = (params) => JSON.stringify(app.updateApproval(JSON.parse(params)))
 const updateCompleteHandover = (params) => JSON.stringify(app.updateCompleteHandover(JSON.parse(params)))
 
-const scripAppUrl = () => {
+const getAppUrl = () => {
   const url = ScriptApp.getService().getUrl()
+  // const url = CONFIG.WebAppUrl
   return JSON.stringify(url)
 }
 

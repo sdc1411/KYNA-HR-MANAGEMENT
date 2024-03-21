@@ -2,7 +2,6 @@
   const SelfWorkingCalendar = {
     data: () => ({
       page: 1,
-      pageSize: -1,
       headers: [
         {text: "Mã nhân viên", value: "employeeCode"},
         {text: "Tên nhân viên", value: "employeeName"},
@@ -25,56 +24,83 @@
         { text: 'Sun - Sat', value: [0, 1, 2, 3, 4, 5, 6] },
       ],
       value: '',
-      events: [],
-      // colors: ['blue', 'indigo', 'deep-purple', 'cyan', 'green'],
       selectedEvent: {},
       selectedElement: null,
       selectedOpen: false,
+      selectedMonth: null,
+      selectedYear: null,
     }),
     computed: {
       ...Vuex.mapState({
         loading: "loading",
         loginUser: "loginUser",
         statusColor: 'statusColor',
-        workingCalendar: 'workingCalendar',
       }),
       ...Vuex.mapGetters({
         isAdmin: "isAdmin",
         isHR: "isHR",
         workingCalendarFilter: "workingCalendarFilter",
       }),
+      getWorkingCalendarDay(){
+        const result = this.workingCalendarFilter.filter(item => item.employeeCode === this.loginUser.Employee_code && item.workingTimeTypeName === 'Lịch làm việc' && item.workingMonth === this.selectedMonth && item.workingYear === this.selectedYear)
+        .reduce((sum, item) => sum + item.numberWorkingDay,0)
+        return result
+      },
+      getTimeSheetDay(){
+        const result = this.workingCalendarFilter.filter(item => item.employeeCode === this.loginUser.Employee_code && item.timeSheetType === 'Chấm công vân tay' && item.workingMonth === this.selectedMonth && item.workingYear === this.selectedYear)
+        .reduce((sum, item) => sum + item.numberWorkingDay,0)
+        return result
+      },
+      getWFHDay(){
+        const result = this.workingCalendarFilter.filter(item => item.employeeCode === this.loginUser.Employee_code && item.leaveTypes === 'Làm việc tại nhà' && item.workingMonth === this.selectedMonth && item.workingYear === this.selectedYear)
+        .reduce((sum, item) => sum + item.numberWorkingDay,0)
+        return result
+      },
+      getLeavesDay(){
+        const result = this.workingCalendarFilter.filter(item => item.employeeCode === this.loginUser.Employee_code && item.leaveTypes === 'Nghỉ phép năm' && item.workingMonth === this.selectedMonth && item.workingYear === this.selectedYear)
+        .reduce((sum, item) => sum + item.numberWorkingDay,0)
+        return result
+      },
+      getNonSalaryLeavesDay(){
+        const result = this.workingCalendarFilter.filter(item => item.employeeCode === this.loginUser.Employee_code && item.workingMonth === this.selectedMonth && item.workingYear === this.selectedYear)
+        .reduce((sum, item) => sum + item.numberWorkingDay,0)
+        return result
+      },
     },
     methods: {
+      getDateTimeFormat(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+        const hours = formattedDate.getHours().toString().padStart(2, '0');
+        const minutes = formattedDate.getMinutes().toString().padStart(2, '0');
+        const dateFormat = `${day}/${month}/${year}`
+        const timeFormat = `${hours}:${minutes}`
+
+        return {dateFormat, timeFormat};
+      },
       viewDay ({ date }) {
         this.focus = date
         this.type = 'day'
       },
+      updateMonthYear({start, end}) {
+        this.start = start
+        this.end = end
+        let year = this.start.year
+        let month = this.start.month
+        this.selectedMonth = month
+        this.selectedYear = year
+      },
       async onPageLoad(){
-        this.$store.dispatch("getItems", {
-        database: "workingCalendarDatabase", 
-        sheetName: "workingCalendar", 
+        const pageSize = (this.loginUser.system_role === 'Admin' || this.loginUser.system_role === 'HR') ? -1 : 100
+        this.$store.dispatch("getWorkingCalendarData", {
         page: this.page, 
-        pageSize: this.pageSize,
+        pageSize: pageSize,
         filters: {
-          employeeCode: this.loginUser.Employee_code,
-          },
-        })
-        this.$store.dispatch("getItems", {
-        database: "leaveDaysDatabase", 
-        sheetName: "leaveTracking", 
-        page: this.page, 
-        pageSize: this.pageSize,
-        filters: {
-          employeeCode: this.loginUser.Employee_code,
-          },
-        })
-        this.$store.dispatch("getItems", {
-        database: "timeSheetDatabase", 
-        sheetName: "timeSheet", 
-        page: this.page, 
-        pageSize: this.pageSize,
-        filters: {
-          employeeCode: this.loginUser.Employee_code,
+          department: this.loginUser.department
           },
         })
       },
@@ -90,13 +116,16 @@
           const startDateTime = new Date(a1.getFullYear(),a1.getMonth(),a1.getDate(),a2.getHours(),a2.getMinutes())
           const endDateTime = new Date(b1.getFullYear(),b1.getMonth(),b1.getDate(),b2.getHours(),b2.getMinutes())
 
+          const {dateFormat: startDateFormat , timeFormat: startTimeFormat} = this.getDateTimeFormat(startDateTime)
+          const {dateFormat: endDateFormat , timeFormat: endTimeFormat} = this.getDateTimeFormat(endDateTime)
+
           const event = {
             name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType ,
             start: startDateTime,
             end: endDateTime,
             color: this.getEventColor({ name: item.workingTimeTypeName || item.leaveTypes || item.timeSheetType }),
             timed: true,
-            details: 'Từ ' + startDateTime.toLocaleString() + ' đến ' + endDateTime.toLocaleString() ,
+            details: 'Từ ' + startTimeFormat + ' ngày ' + startDateFormat + ' đến ' + endTimeFormat + ' ngày ' + endDateFormat ,
           };
           events.push(event);
         });

@@ -1,0 +1,205 @@
+<div>
+  <v-card flat
+    >
+    <v-spacer></v-spacer>
+      <v-card>
+        <v-card-title>
+            <v-btn v-if="loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
+              class="btn ma-2" color="primary" elevation="2" depressed small @click="showWorkingCalendarForm" :disabled="loading" rounded
+            >
+            <v-icon left>mdi-plus</v-icon>
+              Tạo lịch làm việc
+            </v-btn>
+            <v-btn v-if="loginUser.level === 'Manager' || loginUser.level === 'Director' || loginUser.level === 'C-level' || loginUser.system_role === 'HR' || loginUser.system_role === 'Admin'"
+              class="btn ma-2" color="primary" elevation="2" depressed small @click="showWorkingCalendarImport" :disabled="loading" rounded
+            >
+            <v-icon left>mdi-plus</v-icon>
+              Import lịch làm việc
+            </v-btn>
+
+            
+            <!-- Dialog import lịch làm việc -->
+            <v-dialog v-model="dialogImport.show" :width="dialogImport.width || 750" persistent>
+              <v-form ref="workingCalendarForm" @click.prevent="importWorkingCalendar">
+                <v-card>
+                    <v-card-title class="text-h5 white--text" v-html="dialogImport.title" :class="dialogImport.color || 'primary' ">
+                    </v-card-title>
+                    <v-card-text class="mt-6 pb-0">
+                      <v-row align="center">
+                          <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="2">
+                            <date-picker :item="workingCalendarForm.fromDate"></date-picker>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="2">
+                            <date-picker :item="workingCalendarForm.toDate"></date-picker>
+                          </v-col>
+                          <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="3">
+                            <v-autocomplete
+                              v-model="workingCalendarForm.department.value"
+                              :label="workingCalendarForm.department.label"
+                              :rules="workingCalendarForm.department.rules"
+                              :disabled="isDepartmentDisabled"
+                              :items="workingCalendarForm.department.items"
+                              @change="$emit('change')"
+                            ></v-autocomplete>
+                        </v-col>
+                        <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="5">
+                            <template>
+                              <v-file-input
+                                accept=".xlsx"
+                                label="File input(xlsx)"
+                                outlined
+                                v-model="selectXlsx"
+                                show-size
+                              >
+                              </v-file-input>
+                            </template>
+                        </v-col>
+                      </v-row>
+                  </v-card-text>
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      :color="dialogImport.color"
+                      :disabled="loading"
+                      @click="importWorkingCalendar"
+                    >
+                      <v-icon left>{{dialogImport.icon}}</v-icon>
+                      Import
+                    </v-btn>
+                    <v-btn color=" grey " @click="dialogImport.show = false" :disabled="loading">
+                      <v-icon left>mdi-cancel</v-icon>
+                      Cancel
+                    </v-btn>
+                    <v-btn href="https://docs.google.com/spreadsheets/d/1lfQMTt4PFIgnB05Y00Isp7YZQODBuuaO/edit#gid=1932497234" :disabled="loading" target="_blank">
+                      <v-icon left>mdi-tray-arrow-down</v-icon>
+                      Download Template
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-form>
+            </v-dialog>
+
+            <!-- Dialog tạo lịch làm việc -->
+            <v-dialog v-model="dialog.show" :width="dialog.width || 850" persistent>
+              <v-form ref="workingCalendarForm" @click.prevent="createWorkingCalendarForm" @click.prevent="updateWorkingCalendarForm" @click.prevent="deleteWorkingCalendarForm">
+                <v-card>
+                  <v-card-title class="text-h5 white--text" v-html="dialog.title" :class="dialog.color || 'primary' ">
+                  </v-card-title>
+                  <v-card-text class="mt-6 pb-0">
+                    <v-row align="center">
+                        <v-col
+                          cols="12"
+                          class="mt-2"
+                          sm="2">
+                          <date-picker :item="workingCalendarForm.fromDate"></date-picker>
+                        </v-col>
+                        <v-col
+                          cols="12"
+                          class="mt-2"
+                          sm="2">
+                          <date-picker :item="workingCalendarForm.toDate"></date-picker>
+                        </v-col>
+                        <v-col
+                          cols="12"
+                          class="mt-2"
+                          sm="3">
+                          <v-select v-model="workingCalendarForm.object.value" 
+                            :items="workingCalendarForm.object.items" 
+                            :label="workingCalendarForm.object.label" 
+                            :rules="workingCalendarForm.object.rules"
+                            small-chips
+                            @change="$emit('change')"
+                          ></v-select>
+                        </v-col>
+                        <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="2">
+                            <v-text-field
+                              v-model.trim="workingCalendarForm.employeeCode.value"
+                              :label="workingCalendarForm.employeeCode.label"
+                              :rules="workingCalendarForm.employeeCode.rules"
+                              :disabled="isEmployeeCodeDisabled"
+                              @change="$emit('change')"
+                            ></v-text-field>
+                        </v-col>
+                        <v-col
+                            cols="12"
+                            class="mt-2"
+                            sm="3">
+                            <v-autocomplete
+                              v-model="workingCalendarForm.department.value"
+                              :label="workingCalendarForm.department.label"
+                              :rules="workingCalendarForm.department.rules"
+                              :disabled="isDepartmentDisabled"
+                              :items="workingCalendarForm.department.items"
+                              @change="$emit('change')"
+                            ></v-autocomplete>
+                        </v-col>
+                    </v-row>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn @click="createWorkingCalendarForm" text :color="dialog.colorCreate || 'primary' " :disabled="loading">
+                      <v-icon left>{{ dialog.icon }}</v-icon>
+                      {{ dialog.typeCreate }}
+                    </v-btn>
+                    <v-btn @click="updateWorkingCalendarForm" text :color="dialog.colorUpdate || 'primary' " :disabled="loading">
+                      <v-icon left>mdi-arrow-right</v-icon>
+                      {{ dialog.typeUpdate }}
+                    </v-btn>
+                    <v-btn @click="deleteWorkingCalendarForm" text :color="dialog.colorDelete || 'primary' " :disabled="loading">
+                      <v-icon left>mdi-close</v-icon>
+                      {{ dialog.typeDelete }}
+                    </v-btn>
+                    <v-btn color=" grey " text @click="dialog.show = false" :disabled="loading">
+                      <v-icon left>mdi-cancel</v-icon>
+                      Cancel
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-form>
+            </v-dialog>
+
+
+          <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+        </v-card-title>
+        <v-data-table
+          :headers="headers"
+          :items="workingCalendarRequests.items"
+          :search="search"
+        >
+        <template v-slot:item.fromDate="{ item }">
+          {{ item.fromDate ? formatDate(item.fromDate) : item.fromDate}}
+        </template>
+        <template v-slot:item.toDate="{ item }">
+          {{ item.toDate ? formatDate(item.toDate) : item.toDate}}
+        </template>
+        <template v-slot:item.createdAt="{ item }">
+          {{ item.createdAt ? new Date(item.createdAt).toLocaleString() : item.createdAt}}
+        </template>
+        </v-data-table>
+      </v-card>
+    <v-spacer></v-spacer>
+  </v-card>
+</div>

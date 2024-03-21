@@ -20,10 +20,22 @@ const CreateWorkingCalendar = {
         {text: "Mã nhân viên",value: "employeeCode"},
         {text: "Phòng ban",value: "department"},
         {text: "Ngày tạo",value: "createdAt"},
+        {text: "View",value: "view"},
       ],
+      // headersView: [
+      //   {text: "Mã nhân viên", value: "employeeCode"},
+      //   {text: "Tên nhân viên", value: "employeeName"},
+      //   {text: "Mã ca", value: "workingTimeType"},
+      //   {text: "Giờ bắt đầu", value: "startShift"},
+      //   {text: "Giờ kết thúc", value: "endShift"},
+      //   {text: "Ngày", value: "startDate"},
+      // ],
+      headersView: [],
+      viewItems: [],
       workingCalendarForm: Utils.copyObject(Forms.WorkingCalendarForm, true),
       dialog: {},
       dialogImport: {},
+      dialogView: {},
       objectList: ["Tất cả phòng ban","Phòng ban","Nhân viên"],
       selectXlsx: null,
       error: null,
@@ -34,6 +46,8 @@ const CreateWorkingCalendar = {
         loginUser: "loginUser",
         statusColor: 'statusColor',
         workingCalendarRequests: 'workingCalendarRequests',
+        users: 'users',
+        workingTimeType: 'workingTimeType',
       }),
       ...Vuex.mapGetters({
         isAdmin: "isAdmin",
@@ -46,15 +60,66 @@ const CreateWorkingCalendar = {
       isDepartmentDisabled() {
         return (this.workingCalendarForm.object.value === '' || this.workingCalendarForm.object.value === 'Tất cả phòng ban' || this.workingCalendarForm.object.value === 'Nhân viên') ? true : false;
       },
+      workingCalendarRequestsFilter() {
+        return (this.loginUser.system_role === 'Admin' || this.loginUser.system_role === 'HR') ? this.workingCalendarRequests.items : this.workingCalendarRequests.items.filter(item => item.department === this.loginUser.department)
+      }
     },
+    // mounted() {
+    //   if (this.workingCalendarRequestsFilter.view && this.workingCalendarRequestsFilter.view.length > 0) {
+    //     this.headersView = Object.keys(this.workingCalendarRequestsFilter.view[0]).map(key => ({ text: key, value: key }));
+    //     console.log(this.headersView)
+    //   } else {
+    //     // Handle the case when workingCalendarRequestsFilter.view is empty or undefined
+    //     console.error('workingCalendarRequestsFilter.view is empty or undefined');
+    //   }
+    // },
     methods: {
       formatDate(date) {
-        if (!date) return ''; // Return an empty string if date is undefined
+        if (!date) return ''
         const formattedDate = new Date(date);
         const day = formattedDate.getDate().toString().padStart(2, '0');
-        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); 
         const year = formattedDate.getFullYear();
         return `${day}/${month}/${year}`;
+      },
+      formatTime(dateTime) {
+        if (dateTime) {
+          const dateObj = new Date(dateTime);
+          return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        return '';
+      },
+      getShiftTime(timeType, employeeName) {
+        try {
+          const items = this.workingTimeType.items.filter(item => item.workingTimeType === timeType.trim())
+          const startShiftAllDayFormat = this.formatTime(items[0].startShiftAllDay);
+          const endShiftAllDayFormat = this.formatTime(items[0].endShiftAllDay);
+          const startShiftOptionalFormat = this.formatTime(items[0].startShiftOptional);
+          const endShiftOptionalFormat = this.formatTime(items[0].endShiftOptional);
+          return {startShiftAllDayFormat: startShiftAllDayFormat, endShiftAllDayFormat: endShiftAllDayFormat, startShiftOptionalFormat: startShiftOptionalFormat, endShiftOptionalFormat: endShiftOptionalFormat, startShiftAllDay: items[0].startShiftAllDay, endShiftAllDay: items[0].endShiftAllDay, startShiftOptional: items[0].startShiftOptional, endShiftOptional: items[0].endShiftOptional}
+        } catch (err) {
+          this.error = `Nhân viên ${employeeName} có định dạng mã ca ${timeType} không đúng`
+          this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+        }
+      },
+      getDayName(dayNumber) {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        return days[dayNumber];
+      },
+      getWorkingTime(startDate, endDate, startShift, endShift) {
+        startDate = new Date(startDate)
+        endDate = new Date(endDate)
+        startShift = new Date(startShift)
+        endShift = new Date (endShift)
+        let startDateTime = new Date(startDate.getFullYear(), startDate.getMonth() - 1, startDate.getDate(), startShift.getHours(), startShift.getMinutes())
+        let endDateTime = new Date(endDate.getFullYear(), endDate.getMonth() - 1, endDate.getDate(), endShift.getHours(), endShift.getMinutes())
+        const workingMinutes = Math.abs((endDateTime.getTime() - startDateTime.getTime()) / (1000 * 60));
+        const workingHours = workingMinutes / 60
+        const numberWorkingDay = (workingHours <= 5 && workingHours > 2) ? 0.5 : (workingHours > 5) ? 1 : 0
+        const workingYear = startDate.getFullYear()
+        const workingMonth = startDate.getMonth() + 1
+        const workingDay = this.getDayName(startDate.getDay())
+        return { workingMinutes, workingHours, numberWorkingDay, workingMonth, workingYear,workingDay }
       },
       async onPageLoad(){
           this.$store.dispatch("getItems", {
@@ -62,6 +127,12 @@ const CreateWorkingCalendar = {
           sheetName: "workingCalendarRequests", 
           pageSize: this.pageSize,
           page: this.page,
+          })
+          this.$store.dispatch("getItems", {
+          database: "employeeContractDatabase", 
+          sheetName: "workingTimeType", 
+          page: this.page, 
+          pageSize: this.pageSize
           })
       },
       showWorkingCalendarForm(item){
@@ -87,9 +158,14 @@ const CreateWorkingCalendar = {
         this.dialogImport = {
           show: true,
           title: "Import lịch làm việc",
-          color: "primary",
+          typeCreate: "Import lịch mới",
+          typeUpdate: "Update lịch",
+          typeDelete: "Delete lịch",
+          colorCreate: "primary",
+          colorUpdate: "secondary",
+          colorDelete: "negative",
           icon: "mdi-plus",
-          width: "750"
+          width: "800"
         }
         this.workingCalendarForm = Utils.copyObject(Forms.WorkingCalendarForm, true)
         this.workingCalendarForm.department.items = this.listDepartments
@@ -208,10 +284,10 @@ const CreateWorkingCalendar = {
         this.dialog.show = false
         this.onPageLoad()
       },
-      async importWorkingCalendar() {
+      async importWorkingCalendar(action) {
         if (!this.$refs.workingCalendarForm.validate()) return
         const item = Utils.getFormValues(this.workingCalendarForm)
-        item.type = 'Import'
+        item.type = action
         const fromDateFormat = new Date(item.fromDate)
         const toDateFormat = new Date(item.toDate)
         const object = item.object
@@ -242,11 +318,103 @@ const CreateWorkingCalendar = {
               const wsname = wb.SheetNames[0];
               const ws = wb.Sheets[wsname];
               /* Convert array of arrays */
-              const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-              item.importData = data;
+              const data = XLSX.utils.sheet_to_json(ws);
+              item.importData = data.filter(a => a.employeeCode !== '');
+              const usersFilter = this.users.items.filter((user) => user.department === item.department)
+              const validateList = []
+              const duplicateEmployeeCodeSet = new Set();
+              let duplicateEmployeeCodes = []
+              item.importData.forEach((row) => {
+                const validate = usersFilter.filter((i) => i.Employee_code === row.employeeCode)
+                if (validate.length === 0) {
+                  validateList.push(row.employeeCode)
+                }
+                if (duplicateEmployeeCodeSet.has(row.employeeCode)) {
+                  duplicateEmployeeCodes.push(row.employeeCode)
+                }
+                duplicateEmployeeCodeSet.add(row.employeeCode)
+              })
+              if (validateList.length > 0) {
+                this.error = `Các mã nhân viên ${JSON.stringify(validateList)} không thuộc phòng ban ${item.department}`
+                this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+                this.selectXlsx = null;
+                return
+              }
+              if (duplicateEmployeeCodes.length > 0) {
+                this.error = `Các mã nhân viên ${JSON.stringify(duplicateEmployeeCodes)} đang bị trùng lặp`
+                this.$store.dispatch('showSnackbar', {color: 'error',message: this.error})
+                this.selectXlsx = null;
+                return
+              }
+              let resultArray = [];
+              let inputArray = item.importData
+              for (let i = 0; i < inputArray.length; i++) {
+                let employeeCode = inputArray[i]['employeeCode'];
+                let employeeName = inputArray[i]['employeeName'];
+
+                for (let date in inputArray[i]) {
+                  if (date !== 'employeeCode' && date !== 'employeeName') {
+                    let timeType = inputArray[i][date]
+                    const {startShiftAllDayFormat,endShiftAllDayFormat,startShiftOptionalFormat,endShiftOptionalFormat, startShiftAllDay,endShiftAllDay,startShiftOptional,endShiftOptional} = this.getShiftTime(timeType, employeeName)
+                    let currentDate = new Date(date)
+                    let currentDateFormat = `${currentDate.getMonth()+1}/${currentDate.getDate()}/${currentDate.getFullYear()}`
+                    const {workingMinutes, workingHours, numberWorkingDay, workingMonth, workingYear, workingDay} = this.getWorkingTime(currentDate,currentDate,startShiftAllDay, endShiftAllDay)
+                    let createdAt = new Date()
+                    let createdAtFormat = `${createdAt.getMonth()+1}/${createdAt.getDate()}/${createdAt.getFullYear()}`
+                    let entry = {
+                      'createdAt': createdAtFormat,
+                      'employeeCode': employeeCode,
+                      'employeeName': employeeName,
+                      'department': item.department,
+                      'workingTimeType': timeType,
+                      'startDate': currentDateFormat,
+                      'endDate': currentDateFormat,
+                      'startShift': startShiftAllDayFormat,
+                      'endShift' : endShiftAllDayFormat,
+                      'workingMinutes': workingMinutes,
+                      'workingHours': workingHours,
+                      'numberWorkingDay': numberWorkingDay,
+                      'workingMonth': workingMonth,
+                      'workingYear': workingYear,
+                      'workingDay': workingDay,
+                      'workingTimeTypeName': 'Lịch làm việc',
+                      'idStatus': 'Approved'
+                    };
+                    resultArray.push(entry);
+                    if (startShiftOptional !== '') {
+                      const {workingMinutes: workingMinutes2, workingHours: workingHours2, numberWorkingDay: numberWorkingDay2} = this.getWorkingTime(currentDate,currentDate,startShiftOptional, endShiftOptional)
+                      let entry2 = {
+                      'createdAt': createdAtFormat,
+                      'employeeCode': employeeCode,
+                      'employeeName': employeeName,
+                      'department': item.department,
+                      'workingTimeType': timeType,
+                      'startDate': currentDateFormat,
+                      'endDate': currentDateFormat,
+                      'startShift' : startShiftOptionalFormat,
+                      'endShift' : endShiftOptionalFormat,
+                      'workingMinutes': workingMinutes2,
+                      'workingHours': workingHours2,
+                      'workingDay': numberWorkingDay2,
+                      'workingMonth': workingMonth,
+                      'workingYear': workingYear,
+                      'workingDay': workingDay,
+                      'workingTimeTypeName': 'Lịch làm việc',
+                      'idStatus': 'Approved'
+                    };
+                    resultArray.push(entry2)
+                    }
+                  }
+                }
+              }
+              let startDateRange = resultArray.map(item => item.startDate).sort((a,b)=>new Date(a) - new Date(b))
+              item.fromDate = startDateRange[0]
+              item.toDate = startDateRange[startDateRange.length - 1]
+              item.importDataDetail = resultArray
+              // console.log(item)
               await this.$store.dispatch('handleWorkingCalendar', item);
               this.dialogImport.show = false;
-              this.$store.dispatch('showSnackbar', {color: 'success',message: 'Lịch làm việc đang được import'})
+              this.$store.dispatch('showSnackbar', {color: 'success',message: `Đang ${item.type}`})
               this.selectXlsx = null;
               this.onPageLoad();
             } catch (error) {
@@ -256,6 +424,32 @@ const CreateWorkingCalendar = {
           reader.readAsBinaryString(this.selectXlsx);
         }
       },
+      viewImport(item) {
+        this.viewItems = JSON.parse(item.view)
+        const allHeaders = Array.from(
+          new Set(this.viewItems.flatMap(item => Object.keys(item)))
+        );
+        this.headersView = allHeaders.map(key => ({ text: key, value: key }));
+        // console.log(this.viewItems)
+        this.dialogView = {
+          show: true,
+          title: "Xem dữ liệu import",
+          color: "primary"
+        }
+      },
+      exportFile() {
+        const ws = XLSX.utils.json_to_sheet(this.viewItems);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Data");
+          /* fix headers */
+        // XLSX.utils.sheet_add_aoa(ws, [["Mã nhân viên", "Tên nhân viên"]], { origin: "A1" });
+
+        /* calculate column width */
+        // const max_width = rows.reduce((w, r) => Math.max(w, r.employeeName.length), 10);
+        // ws["!cols"] = [ { wch: max_width } ];
+
+        XLSX.writeFileXLSX(wb, "exportedfile.xlsx",{ compression: true });
+      }
     },
     watch:{
       page: function(){

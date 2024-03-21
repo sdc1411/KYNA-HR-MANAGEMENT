@@ -1,0 +1,131 @@
+<script>
+  
+  const ReceivedLeaves = {
+    data: ()=>({
+      page: 1,
+      pageSize: 100,
+      headers: [
+        // {text: "ID", value: "id"},
+        {text: "Mã nhân viên", value: "employeeCode"},
+        {text: "Tên nhân viên", value: "employeeName"},
+        {text: "Team", value: "department"},
+        {text: "Leave Type", value: "leaveTypes"},
+        {text: "Lý do", value: "requestReason"},
+        {text: "Chi tiết ngày nghỉ", value: "dataLeaveDays"},
+        {text: "Status", value: "status"},
+        {text: "Created At", value: "createdAt"},
+        {text: "Actions", value: "actions"},
+      ],
+      form: Utils.copyObject(Forms.LeaveForm, true),
+      search: Utils.copyObject(Forms.Search),
+      dialog: {},
+      comments: {
+        label: "Comments",
+        value: null,
+        type: "textarea",
+        icon: "mdi-comment-text",
+      },
+    }),
+    computed:{
+      ...Vuex.mapState({
+        loading: 'loading',
+        loginUser: 'loginUser',
+        statusColor: 'statusColor',
+      }),
+      ...Vuex.mapGetters({
+        items: 'receivedLeaves',
+        assignedToEmails: 'assignedToEmails',
+      }),
+    },
+    methods: {
+      formatDate(date) {
+        if (!date) return ''; // Return an empty string if date is undefined
+
+        const formattedDate = new Date(date);
+        const day = formattedDate.getDate().toString().padStart(2, '0');
+        const month = (formattedDate.getMonth() + 1).toString().padStart(2, '0'); // Note: Month is zero-based
+        const year = formattedDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+      },
+      async onPageLoad(){
+        this.$store.dispatch("getItems", {
+          database: "leaveDaysDatabase",
+          sheetName: "leaveRequests", 
+          page: this.page, 
+          pageSize: this.pageSize, 
+          filters: {
+            pendingOn: this.loginUser.employee_email,
+            status: "Pending",  
+          },
+        })
+      },
+      async submit(){
+        if (!this.$refs.form.validate()) return
+        const item = {
+          id: this.form.id.value,
+          employeeName: this.form.employeeName.value,
+          department: this.form.department.value,
+          comments: this.comments.value,
+          assignedToEmails: this.form.assignedToEmails.value,
+          type: this.dialog.type,
+        }
+        const success = await this.$store.dispatch("updateApproval", {database: "leaveDaysDatabase", sheetName: "leaveRequests",item})
+        // console.log(item)
+        if (success) this.dialog.show = false
+        await this.onPageLoad()
+      },
+      showApproveForm(item){
+        this.form = Utils.copyObject(Forms.LeaveForm, true)
+        this.form.assignedToEmails.items = this.assignedToEmails
+        Utils.updateFormValues(this.form, item, true)
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Approve",
+          title: "Approve",
+          color: "success",
+          icon: "mdi-check",
+        }
+      },
+      showRejectForm(item){
+        this.form = Utils.copyObject(Forms.LeaveForm, true)
+        this.form.assignedToEmails.items = this.assignedToEmails
+        Utils.updateFormValues(this.form, item, true)
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Reject",
+          title: "Reject",
+          color: "error",
+          icon: "mdi-close",
+        }
+      },
+      showForwardForm(item){
+        this.form = Utils.copyObject(Forms.LeaveForm, true)
+        this.form.assignedToEmails.items = this.assignedToEmails.filter(v => !item.assignedToEmails.includes(v) && item.requestedBy !== v)
+        Utils.updateFormValues(this.form, item)
+        this.form.assignedToEmails.value = null
+        this.form.assignedToEmails.multiple = false
+        this.$refs.form && this.$refs.form.resetValidation()
+        this.comments.value = null
+        this.dialog = {
+          show: true,
+          type: "Forward",
+          title: "Forward",
+          color: "secondary",
+          icon: "mdi-arrow-right",
+        }
+      },
+    },
+    created(){
+      this.onPageLoad()
+    },
+    template: `
+    <?!= include_('dashboard/Pages/Leaves/ReceivedLeaves_template.html'); ?>
+    `
+  }
+
+  </script>

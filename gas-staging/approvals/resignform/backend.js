@@ -108,6 +108,7 @@ function SubmitResignForm() {
     for (let i = 1; i < inputArray.length; i++) {
       const row = inputArray[i];
       const id = row[9];
+      const employeeEmail = row[1]
       const employeeCode = row[2];
       const employeeName = row[3];
       const position = row[4];
@@ -127,6 +128,7 @@ function SubmitResignForm() {
           // console.log(dataHandover)
           const newRow = [
             id,
+            employeeEmail,
             employeeCode,
             employeeName,
             position,
@@ -164,8 +166,9 @@ function SubmitResignForm() {
               entry[4],
               entry[5],
               entry[6],
-              JSON.stringify(entry[7]),
-              entry[8],
+              entry[7],
+              JSON.stringify(entry[8]),
+              entry[9],
             ];
 
             destinationSS.appendRow(row);
@@ -444,7 +447,7 @@ function SubmitResignForm() {
       this.sendApproval({ task, approver: nextApprover, approvers })
     } else {
       sheet.getRange(row, statusColumn).setValue(approved)
-      approver.newoffdate = convertDate(newoffdate)
+      approver.newoffdate = (newoffdate) ? convertDate(newoffdate) : ''
       sheet.getRange(row, 9).setValue(approver.newoffdate)
       this.sendNotification(taskId)
       this.createResignHandover()
@@ -457,7 +460,7 @@ function SubmitResignForm() {
     const { task, approver, nextApprover, row, column, statusColumn } = this.getTaskById(taskId)
     if (!approver) return
     approver.comments = comments
-    approver.newoffdate = convertDate(newoffdate)
+    approver.newoffdate = (newoffdate) ? convertDate(newoffdate) : ''
     approver.status = rejected
     approver.timestamp = new Date()
     sheet.getRange(row, column).setValue(JSON.stringify(approver))
@@ -465,6 +468,11 @@ function SubmitResignForm() {
     this.sendNotification(taskId)
   }
 
+}
+
+function testtesttest () {
+  const app = new SubmitResignForm()
+  app.createResignHandover()
 }
 
 

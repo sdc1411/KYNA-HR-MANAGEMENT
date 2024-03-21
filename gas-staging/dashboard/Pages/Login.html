@@ -1,0 +1,32 @@
+<script>
+  const LoginView = {
+    data: () =>({
+      form: Utils.copyObject(Forms.Login, true),
+    }),
+    computed: {
+      ...Vuex.mapState({
+        loading: "loading",
+        statusColor: 'statusColor',
+      })
+    },
+    methods: {
+      async login(){
+        if (!this.$refs.form.validate()) return
+        const item = Utils.getFormValues(this.form)
+        // console.log(this.form)
+        const success = await this.$store.dispatch("login", {item})
+      },
+      // async logOut() {
+      //   const sucess = await this.$store.dispatch("logOut")
+      //   // console.log("ok")
+      // },
+      async loginWithGoogle() {
+        const success = await this.$store.dispatch("loginWithGoogle")
+      }
+    },
+    template: `
+      <?!= include_('dashboard/Pages/Login_template.html'); ?>
+    `
+  }
+
+</script>
