@@ -19,3 +19,18 @@ Thư viện GAS connect với FireBase (sử dụng 0Auth2 ID):
 Thư viện GAS connect với Firestore:
 '1VUSl4b1r1eoNcRWotZM3e87ygkxvXltOgyDZhixqncz9lQ3MjfT1iKFw'
 
+Hướng dẫn connect đến project App Scripts: 
+1. Cai dat clasp: npm install -g @google/clasp 
+2. Dang nhap tai khoan Google: clasp login
+3. Keo project ve => chon dung scriptID o file clasp.json => clasp pull 
+4. Push len project => chon dung scriptID o file clasp.json => clasp push
+
+Huong dan push du lieu giua production, staging, development:
+npm run devtotest, testtopro....
+
+
+
+
+
+
+

@@ -185,7 +185,6 @@ class App {
   getDataLoginUser() {
     const dbUser = SpreadsheetApp.openById(CONFIG.DATABASE.USERS)
     const wsUsers = dbUser.getSheetByName(CONFIG.SHEET_NAME.USER)
-    // if (!wsUsers) throw new Error(`${CONFIG.SHEET_NAME.USER} was not found in the database`)
     const [headers,...records] = wsUsers.getDataRange().getValues()
     
     const keys = this.createKeys(headers)
